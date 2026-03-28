@@ -1,111 +1,279 @@
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+@import "tailwindcss";
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+/* ============================================================
+   HabitTree Design System — Technical Brutalism
+   "The Kinetic Console"
+   ============================================================ */
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@theme {
+  /* ----------------------------------------------------------
+     SURFACE ARCHITECTURE
+     Layered charcoal surfaces — depth through luminosity, not shadows.
+     surface (base) → container-low → container → container-high → container-highest
+     ---------------------------------------------------------- */
+  --color-surface: #0e0e0e;
+  --color-surface-dim: #0e0e0e;
+  --color-surface-bright: #2c2c2c;
+  --color-surface-variant: #262626;
+  --color-surface-container-lowest: #000000;
+  --color-surface-container-low: #131313;
+  --color-surface-container: #1a1919;
+  --color-surface-container-high: #2a2a2a;
+  --color-surface-container-highest: #262626;
+  --color-surface-tint: #deffac;
+  --color-background: #0e0e0e;
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  /* ----------------------------------------------------------
+     PRIMARY — Neon Lime (#ABFF02)
+     The phosphor glow. Used for interactive elements,
+     active states, and focal data points.
+     ---------------------------------------------------------- */
+  --color-primary: #ABFF02;
+  --color-primary-dim: #9fed00;
+  --color-primary-container: #a9fd00;
+  --color-primary-fixed: #a9fd00;
+  --color-primary-fixed-dim: #9fed00;
+  --color-on-primary: #213600;
+  --color-on-primary-container: #3c5d00;
+  --color-on-primary-fixed: #2e4900;
+  --color-on-primary-fixed-variant: #436700;
+  --color-inverse-primary: #446900;
+
+  /* ----------------------------------------------------------
+     SECONDARY — Muted Lime (#dfec60)
+     Supporting accent for secondary actions and links.
+     ---------------------------------------------------------- */
+  --color-secondary: #dfec60;
+  --color-secondary-dim: #d1dd53;
+  --color-secondary-container: #5c6300;
+  --color-secondary-fixed: #dfec60;
+  --color-secondary-fixed-dim: #d1dd53;
+  --color-on-secondary: #4f5600;
+  --color-on-secondary-container: #f6ff9b;
+  --color-on-secondary-fixed: #3d4300;
+  --color-on-secondary-fixed-variant: #596000;
+
+  /* ----------------------------------------------------------
+     TERTIARY — Warm Yellow (#fffae3)
+     Tertiary accent for highlights and warnings.
+     ---------------------------------------------------------- */
+  --color-tertiary: #fffae3;
+  --color-tertiary-dim: #f0e34e;
+  --color-tertiary-container: #fcef59;
+  --color-tertiary-fixed: #fff25b;
+  --color-tertiary-fixed-dim: #f0e34e;
+  --color-on-tertiary: #686100;
+  --color-on-tertiary-container: #5f5800;
+  --color-on-tertiary-fixed: #4d4800;
+  --color-on-tertiary-fixed-variant: #6b6400;
+
+  /* ----------------------------------------------------------
+     WARNING — Overload Orange (#ff9f1c)
+     ---------------------------------------------------------- */
+  --color-warning: #ff9f1c;
+  --color-warning-dim: #e08a00;
+
+  /* ----------------------------------------------------------
+     ERROR — Terminal Red (#ff7351)
+     ---------------------------------------------------------- */
+  --color-error: #ff7351;
+  --color-error-dim: #d53d18;
+  --color-error-container: #b92902;
+  --color-on-error: #450900;
+  --color-on-error-container: #ffd2c8;
+
+  /* ----------------------------------------------------------
+     ON-SURFACE — Content Colors
+     ---------------------------------------------------------- */
+  --color-on-surface: #ffffff;
+  --color-on-surface-variant: #8b947a;
+  --color-on-background: #ffffff;
+  --color-inverse-surface: #fcf8f8;
+  --color-inverse-on-surface: #565554;
+
+  /* ----------------------------------------------------------
+     OUTLINE — Ghost Borders & Structural Hints
+     Used sparingly. The system relies on tonal shifts, not strokes.
+     ---------------------------------------------------------- */
+  --color-outline: #777575;
+  --color-outline-variant: #494847;
+
+  /* ----------------------------------------------------------
+     BORDER RADIUS — 0px. No exceptions.
+     "Every element in this system is 0px."
+     ---------------------------------------------------------- */
+  --radius-none: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-full: 9999px;
+
+  /* ----------------------------------------------------------
+     TYPOGRAPHY
+     Inter: headlines, body. Space Grotesk: labels, data tags.
+     ---------------------------------------------------------- */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Space Grotesk', 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+
+  /* ----------------------------------------------------------
+     SHADOWS — Ambient only, tinted with void black.
+     "Do not use grey; use surface_container_lowest as shadow tint."
+     ---------------------------------------------------------- */
+  --shadow-ambient: 0 20px 40px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 10px rgba(171, 255, 2, 0.4);
+  --shadow-glow-lg: 0 0 20px rgba(171, 255, 2, 0.2);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
+/* ============================================================
+   BASE STYLES
+   ============================================================ */
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+html {
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
 }
 
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
+::selection {
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
 }
 
-body {
-  margin: 0;
+/* ============================================================
+   SCROLLBAR — Minimal, on-brand
+   ============================================================ */
+
+::-webkit-scrollbar {
+  width: 4px;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+::-webkit-scrollbar-track {
+  background: var(--color-surface);
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-container-highest);
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
+
+/* Phosphor glow on text */
+.glow-sm {
+  text-shadow: 0 0 8px rgba(171, 255, 2, 0.4);
+}
+
+.glow-md {
+  text-shadow: 0 0 16px rgba(171, 255, 2, 0.4), 0 0 4px rgba(171, 255, 2, 0.2);
+}
+
+/* CRT light-bleed gradient for active states */
+.light-bleed {
+  background: linear-gradient(
+    135deg,
+    rgba(171, 255, 2, 0.15) 0%,
+    rgba(169, 253, 0, 0.05) 100%
+  );
+}
+
+/* Glassmorphism for floating elements (modals, command palettes) */
+.glass {
+  background: rgba(26, 25, 25, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Ghost border — "felt, not seen" (outline-variant at 20% opacity) */
+.ghost-border {
+  border: 1px solid rgba(73, 72, 71, 0.2);
+}
+
+/* Scanline overlay for hero sections / dashboard headers */
+.scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.05) 0px,
+    rgba(0, 0, 0, 0.05) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+}
+
+/* Terminal blinking cursor */
+.cursor-blink {
+  display: inline-block;
+  width: 8px;
+  height: 1.1em;
+  background-color: var(--color-primary);
+  vertical-align: middle;
+  margin-left: 4px;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  from, to { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Label tracking — "coded" look per design spec */
+.label-tracked {
+  letter-spacing: 0.05rem;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+/* ============================================================
+   RANGE INPUT — Custom thumb
+   ============================================================ */
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--color-surface-container-high);
+  outline: none;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--color-primary);
+  border: 0;
+  cursor: grab;
+}
+
+input[type="range"]::-webkit-slider-thumb:active {
+  cursor: grabbing;
+}
+
+input[type="range"]::-moz-range-track {
+  height: 4px;
+  background: var(--color-surface-container-high);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: var(--color-primary);
+  border: 0;
+  border-radius: 0;
+  cursor: grab;
+}
+
+input[type="range"]::-moz-range-thumb:active {
+  cursor: grabbing;
 }

@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(file:*)",
+      "Bash(npm run:*)",
+      "Bash(grep -E \"\\\\.\\(json|yaml|yml\\)$\")",
+      "Bash(grep -r \"nativewind\\\\|native-wind\\\\|tw\\\\`\" /c/Users/ole-m/Documents/GitHub/HabitTree/apps/mobile/app/ /c/Users/ole-m/Documents/GitHub/HabitTree/apps/mobile/components/)",
+      "Bash(grep -r packages /c/Users/ole-m/Documents/GitHub/HabitTree --include=*.json --include=*.yaml --include=*.yml)",
+      "Bash(grep -r import.*from /c/Users/ole-m/Documents/GitHub/HabitTree/apps/mobile/app/ /c/Users/ole-m/Documents/GitHub/HabitTree/apps/mobile/components/)",
+      "Bash(npm ls:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm install:*)",
+      "Bash(npm -w apps/webapp run build)"
+    ]
+  }
+}

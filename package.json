@@ -1,0 +1,21 @@
+{
+  "name": "habittree",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n web,mobile,api -c blue,green,yellow \"npm run dev:web\" \"npm run dev:mobile\" \"npm run dev:api\"",
+    "dev:web": "npm -w apps/webapp run dev",
+    "dev:mobile": "npm -w apps/mobile run start",
+    "dev:api": "cd apps/backend && set PYTHONIOENCODING=utf-8&& uv run fastapi dev",
+    "build:web": "npm -w apps/webapp run build",
+    "lint": "turbo lint",
+    "build": "turbo build"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "turbo": "^2"
+  }
+}

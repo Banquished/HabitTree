@@ -1,0 +1,13 @@
+{
+  "name": "@HabitTree/api-client",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "@HabitTree/types": "*"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3"
+  }
+}
