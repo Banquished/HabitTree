@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import type { FoodItem, Recipe } from '@HabitTree/types'
 import { calculateFoodMacros } from '../api/macro-calc'
+import { Modal } from '@/shared/modal'
 
 type SourceMode = 'manual' | 'food_item' | 'recipe'
 
@@ -19,9 +20,10 @@ interface Props {
   }) => void
   foodItems?: FoodItem[]
   recipes?: Recipe[]
+  isPending?: boolean
 }
 
-export function LogIntakeForm({ onClose, onSubmit, foodItems = [], recipes = [] }: Props) {
+export function LogIntakeForm({ onClose, onSubmit, foodItems = [], recipes = [], isPending = false }: Props) {
   const [mode, setMode] = useState<SourceMode>('manual')
 
   // Manual state
@@ -79,11 +81,11 @@ export function LogIntakeForm({ onClose, onSubmit, foodItems = [], recipes = [] 
     return foodItems.filter((f) => f.name.toLowerCase().includes(q) || f.brand?.toLowerCase().includes(q)).slice(0, 8)
   }, [foodItems, foodSearch])
 
-  const canSubmit = confirmed && computed.name !== ''
+  const canSubmit = confirmed && computed.name !== '' && !isPending
 
   function handleSubmit() {
     if (!canSubmit) return
-    const timestamp = new Date(`${date}T${time}`).toISOString()
+    const timestamp = new Date(`${date}T${time}:00`).toISOString()
     onSubmit({
       timestamp,
       name: computed.name,
@@ -101,185 +103,173 @@ export function LogIntakeForm({ onClose, onSubmit, foodItems = [], recipes = [] 
     'w-full bg-surface-container-high px-3 py-2 text-on-surface font-bold focus:outline-none focus:ring-1 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 
   const tabClass = (active: boolean) =>
-    `px-4 py-2 text-[9px] font-black tracking-widest uppercase transition-colors ${
+    `px-4 py-2 text-[9px] font-black tracking-widest uppercase transition-colors cursor-pointer ${
       active ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant hover:text-primary'
     }`
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
-      }}
-    >
-      <div className="bg-surface-container p-6 w-full max-w-lg space-y-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold tracking-widest uppercase text-primary">
-            {'>'} LOG_INTAKE_ENTRY
-          </span>
-          <button onClick={onClose} className="text-on-surface-variant hover:text-on-surface transition-colors">
-            <span className="material-symbols-outlined text-xl">close</span>
-          </button>
-        </div>
-
+    <Modal open onClose={onClose} title="LOG_INTAKE_ENTRY">
+      <div className="space-y-4">
         {/* Source mode tabs */}
-        <div className="flex gap-1">
-          <button type="button" onClick={() => setMode('manual')} className={tabClass(mode === 'manual')}>
+        <div className="flex gap-1" role="tablist">
+          <button type="button" role="tab" aria-selected={mode === 'manual'} onClick={() => setMode('manual')} className={tabClass(mode === 'manual')}>
             MANUAL
           </button>
-          <button type="button" onClick={() => setMode('food_item')} className={tabClass(mode === 'food_item')}>
+          <button type="button" role="tab" aria-selected={mode === 'food_item'} onClick={() => setMode('food_item')} className={tabClass(mode === 'food_item')}>
             FOOD_ITEM
           </button>
-          <button type="button" onClick={() => setMode('recipe')} className={tabClass(mode === 'recipe')}>
+          <button type="button" role="tab" aria-selected={mode === 'recipe'} onClick={() => setMode('recipe')} className={tabClass(mode === 'recipe')}>
             RECIPE
           </button>
         </div>
 
         {/* Manual mode */}
-        {mode === 'manual' && (
-          <>
-            <div>
-              <label className="block text-[9px] font-bold tracking-widest uppercase text-on-surface-variant mb-1">
-                MEAL_DESIGNATION
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="DESIGNATION..."
-                className={inputClass}
-              />
-            </div>
-            <div className="grid grid-cols-3 gap-2">
+        <div role="tabpanel">
+          {mode === 'manual' && (
+            <>
               <div>
                 <label className="block text-[9px] font-bold tracking-widest uppercase text-on-surface-variant mb-1">
-                  PROTEIN_G
-                </label>
-                <input type="number" step="0.1" value={proteinG} onChange={(e) => setProteinG(e.target.value)} placeholder="0" className={inputClass} />
-              </div>
-              <div>
-                <label className="block text-[9px] font-bold tracking-widest uppercase text-on-surface-variant mb-1">
-                  CARBS_G
-                </label>
-                <input type="number" step="0.1" value={carbsG} onChange={(e) => setCarbsG(e.target.value)} placeholder="0" className={inputClass} />
-              </div>
-              <div>
-                <label className="block text-[9px] font-bold tracking-widest uppercase text-on-surface-variant mb-1">
-                  FAT_G
-                </label>
-                <input type="number" step="0.1" value={fatG} onChange={(e) => setFatG(e.target.value)} placeholder="0" className={inputClass} />
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* Food item mode */}
-        {mode === 'food_item' && (
-          <>
-            <div>
-              <label className="block text-[9px] font-bold tracking-widest uppercase text-on-surface-variant mb-1">
-                SELECT_FOOD_ITEM
-              </label>
-              <input
-                type="text"
-                value={selectedFood ? selectedFood.name : foodSearch}
-                onChange={(e) => {
-                  setFoodSearch(e.target.value)
-                  setSelectedFood(null)
-                }}
-                placeholder="SEARCH_FOODS..."
-                className={inputClass}
-              />
-              {!selectedFood && foodSearch.trim() !== '' && filteredFoods.length > 0 && (
-                <div className="bg-surface-container-high mt-1 max-h-40 overflow-y-auto">
-                  {filteredFoods.map((food) => (
-                    <button
-                      key={food.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedFood(food)
-                        setFoodSearch('')
-                      }}
-                      className="w-full text-left px-4 py-2 hover:bg-surface-container-highest text-sm text-on-surface transition-colors flex items-center justify-between"
-                    >
-                      <span className="font-bold uppercase text-xs">{food.name}</span>
-                      <span className="text-[9px] text-on-surface-variant tracking-widest">
-                        {food.caloriesPer100g} KCAL/100G
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            {selectedFood && (
-              <div>
-                <label className="block text-[9px] font-bold tracking-widest uppercase text-on-surface-variant mb-1">
-                  AMOUNT_GRAMS
-                </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    value={foodAmountG}
-                    onChange={(e) => setFoodAmountG(e.target.value)}
-                    className={inputClass}
-                  />
-                  <span className="text-xs font-bold text-on-surface-variant tracking-widest">G</span>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-
-        {/* Recipe mode */}
-        {mode === 'recipe' && (
-          <>
-            <div>
-              <label className="block text-[9px] font-bold tracking-widest uppercase text-on-surface-variant mb-1">
-                SELECT_RECIPE
-              </label>
-              {recipes.length === 0 ? (
-                <div className="bg-surface-container-high px-4 py-6 text-center text-[10px] font-bold tracking-widest uppercase text-on-surface-variant">
-                  NO_RECIPES_AVAILABLE // BUILD_ONE_FIRST
-                </div>
-              ) : (
-                <div className="space-y-1">
-                  {recipes.map((recipe) => (
-                    <button
-                      key={recipe.id}
-                      type="button"
-                      onClick={() => setSelectedRecipe(recipe)}
-                      className={`w-full text-left px-4 py-3 transition-colors ${
-                        selectedRecipe?.id === recipe.id
-                          ? 'bg-primary/10 ring-1 ring-primary'
-                          : 'bg-surface-container-high hover:bg-surface-container-highest'
-                      }`}
-                    >
-                      <div className="text-xs font-black uppercase tracking-tight text-on-surface">{recipe.name}</div>
-                      <div className="text-[9px] font-bold text-on-surface-variant tracking-widest mt-1">
-                        P:{Math.round(recipe.totalProteinG)}G | C:{Math.round(recipe.totalCarbsG)}G | F:{Math.round(recipe.totalFatG)}G — {recipe.totalCalories} KCAL
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            {selectedRecipe && (
-              <div>
-                <label className="block text-[9px] font-bold tracking-widest uppercase text-on-surface-variant mb-1">
-                  SERVINGS
+                  MEAL_DESIGNATION
                 </label>
                 <input
-                  type="number"
-                  step="0.5"
-                  min="0.5"
-                  value={recipeServings}
-                  onChange={(e) => setRecipeServings(e.target.value)}
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="DESIGNATION..."
                   className={inputClass}
                 />
               </div>
-            )}
-          </>
-        )}
+              <div className="grid grid-cols-3 gap-2 mt-4">
+                <div>
+                  <label className="block text-[9px] font-bold tracking-widest uppercase text-on-surface-variant mb-1">
+                    PROTEIN_G
+                  </label>
+                  <input type="number" step="0.1" value={proteinG} onChange={(e) => setProteinG(e.target.value)} placeholder="0" className={inputClass} />
+                </div>
+                <div>
+                  <label className="block text-[9px] font-bold tracking-widest uppercase text-on-surface-variant mb-1">
+                    CARBS_G
+                  </label>
+                  <input type="number" step="0.1" value={carbsG} onChange={(e) => setCarbsG(e.target.value)} placeholder="0" className={inputClass} />
+                </div>
+                <div>
+                  <label className="block text-[9px] font-bold tracking-widest uppercase text-on-surface-variant mb-1">
+                    FAT_G
+                  </label>
+                  <input type="number" step="0.1" value={fatG} onChange={(e) => setFatG(e.target.value)} placeholder="0" className={inputClass} />
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Food item mode */}
+          {mode === 'food_item' && (
+            <>
+              <div>
+                <label className="block text-[9px] font-bold tracking-widest uppercase text-on-surface-variant mb-1">
+                  SELECT_FOOD_ITEM
+                </label>
+                <input
+                  type="text"
+                  value={selectedFood ? selectedFood.name : foodSearch}
+                  onChange={(e) => {
+                    setFoodSearch(e.target.value)
+                    setSelectedFood(null)
+                  }}
+                  placeholder="SEARCH_FOODS..."
+                  className={inputClass}
+                />
+                {!selectedFood && foodSearch.trim() !== '' && filteredFoods.length > 0 && (
+                  <div className="bg-surface-container-high mt-1 max-h-40 overflow-y-auto">
+                    {filteredFoods.map((food) => (
+                      <button
+                        key={food.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedFood(food)
+                          setFoodSearch('')
+                        }}
+                        className="w-full text-left px-4 py-2 hover:bg-surface-container-highest text-sm text-on-surface transition-colors flex items-center justify-between cursor-pointer"
+                      >
+                        <span className="font-bold uppercase text-xs">{food.name}</span>
+                        <span className="text-[9px] text-on-surface-variant tracking-widest">
+                          {food.caloriesPer100g} KCAL/100G
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {selectedFood && (
+                <div className="mt-4">
+                  <label className="block text-[9px] font-bold tracking-widest uppercase text-on-surface-variant mb-1">
+                    AMOUNT_GRAMS
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      value={foodAmountG}
+                      onChange={(e) => setFoodAmountG(e.target.value)}
+                      className={inputClass}
+                    />
+                    <span className="text-xs font-bold text-on-surface-variant tracking-widest">G</span>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Recipe mode */}
+          {mode === 'recipe' && (
+            <>
+              <div>
+                <label className="block text-[9px] font-bold tracking-widest uppercase text-on-surface-variant mb-1">
+                  SELECT_RECIPE
+                </label>
+                {recipes.length === 0 ? (
+                  <div className="bg-surface-container-high px-4 py-6 text-center text-[10px] font-bold tracking-widest uppercase text-on-surface-variant">
+                    NO_RECIPES_AVAILABLE // BUILD_ONE_FIRST
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    {recipes.map((recipe) => (
+                      <button
+                        key={recipe.id}
+                        type="button"
+                        onClick={() => setSelectedRecipe(recipe)}
+                        className={`w-full text-left px-4 py-3 transition-colors cursor-pointer ${
+                          selectedRecipe?.id === recipe.id
+                            ? 'bg-primary/10 ring-1 ring-primary'
+                            : 'bg-surface-container-high hover:bg-surface-container-highest'
+                        }`}
+                      >
+                        <div className="text-xs font-black uppercase tracking-tight text-on-surface">{recipe.name}</div>
+                        <div className="text-[9px] font-bold text-on-surface-variant tracking-widest mt-1">
+                          P:{Math.round(recipe.totalProteinG)}G | C:{Math.round(recipe.totalCarbsG)}G | F:{Math.round(recipe.totalFatG)}G — {recipe.totalCalories} KCAL
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {selectedRecipe && (
+                <div className="mt-4">
+                  <label className="block text-[9px] font-bold tracking-widest uppercase text-on-surface-variant mb-1">
+                    SERVINGS
+                  </label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    min="0.5"
+                    value={recipeServings}
+                    onChange={(e) => setRecipeServings(e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+              )}
+            </>
+          )}
+        </div>
 
         {/* Computed totals */}
         <div className="bg-surface-container-low p-4 space-y-1">
@@ -338,11 +328,12 @@ export function LogIntakeForm({ onClose, onSubmit, foodItems = [], recipes = [] 
         <button
           onClick={handleSubmit}
           disabled={!canSubmit}
-          className="w-full bg-primary py-4 text-on-primary font-black tracking-widest uppercase text-xs hover:shadow-[0_0_20px_rgba(171,255,2,0.2)] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+          className="w-full bg-primary py-4 text-on-primary font-black tracking-widest uppercase text-xs hover:shadow-[0_0_20px_rgba(171,255,2,0.2)] transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
         >
+          {isPending && <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>}
           EXECUTE_LOG
         </button>
       </div>
-    </div>
+    </Modal>
   )
 }

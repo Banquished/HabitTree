@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Modal } from '@/shared/modal'
 
 interface Props {
   onClose: () => void
@@ -11,9 +12,10 @@ interface Props {
     carbsG: number
     fatG: number
   }) => void
+  isPending?: boolean
 }
 
-export function CreateProtocolForm({ onClose, onSubmit }: Props) {
+export function CreateProtocolForm({ onClose, onSubmit, isPending = false }: Props) {
   const [name, setName] = useState('')
   const [version, setVersion] = useState('V1.0')
   const [ingredientsDesc, setIngredientsDesc] = useState('')
@@ -26,7 +28,7 @@ export function CreateProtocolForm({ onClose, onSubmit }: Props) {
   const f = Number(fatG) || 0
   const totalKcal = p * 4 + c * 4 + f * 9
 
-  const canSubmit = name.trim() !== ''
+  const canSubmit = name.trim() !== '' && !isPending
 
   function handleSubmit() {
     if (!canSubmit) return
@@ -45,22 +47,8 @@ export function CreateProtocolForm({ onClose, onSubmit }: Props) {
     'w-full bg-surface-container-high px-3 py-2 text-on-surface font-bold focus:outline-none focus:ring-1 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
-      }}
-    >
-      <div className="bg-surface-container p-6 w-full max-w-lg space-y-4">
-        <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold tracking-widest uppercase text-primary">
-            {'>'} CREATE_PROTOCOL
-          </span>
-          <button onClick={onClose} className="text-on-surface-variant hover:text-on-surface transition-colors">
-            <span className="material-symbols-outlined text-xl">close</span>
-          </button>
-        </div>
-
+    <Modal open onClose={onClose} title="CREATE_PROTOCOL">
+      <div className="space-y-4">
         <div>
           <label className="block text-[9px] font-bold tracking-widest uppercase text-on-surface-variant mb-1">
             PROTOCOL_DESIGNATION
@@ -153,11 +141,12 @@ export function CreateProtocolForm({ onClose, onSubmit }: Props) {
         <button
           onClick={handleSubmit}
           disabled={!canSubmit}
-          className="w-full bg-primary py-4 text-on-primary font-black tracking-widest uppercase text-xs hover:shadow-[0_0_20px_rgba(171,255,2,0.2)] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+          className="w-full bg-primary py-4 text-on-primary font-black tracking-widest uppercase text-xs hover:shadow-[0_0_20px_rgba(171,255,2,0.2)] transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
         >
+          {isPending && <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>}
           SAVE_PROTOCOL
         </button>
       </div>
-    </div>
+    </Modal>
   )
 }

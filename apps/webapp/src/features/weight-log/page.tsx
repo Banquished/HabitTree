@@ -1,4 +1,6 @@
+import { useRef } from 'react'
 import { useWeightEntries, useWeightGoal } from './api/use-weight-entries'
+import { useMacroTargets } from '../fuel-intake/api/use-macro-targets'
 import { WeightChart } from './components/weight-chart'
 import { WeightInput } from './components/weight-input'
 import { MetricCards } from './components/metric-cards'
@@ -7,6 +9,8 @@ import { AuditLog } from './components/audit-log'
 export function Component() {
   const { data: entries = [] } = useWeightEntries()
   const { data: goalKg = 80 } = useWeightGoal()
+  const { data: macroTargets } = useMacroTargets()
+  const sessionId = useRef(crypto.randomUUID()).current
 
   return (
     <div className="space-y-4">
@@ -23,7 +27,7 @@ export function Component() {
             WEIGHT_LOG_METRICS
           </h1>
           <p className="text-[10px] font-bold text-on-surface-variant tracking-widest uppercase mt-1">
-            SESSION_ID: {crypto.randomUUID().slice(0, 8).toUpperCase()}-X-METRIC-WEIGHT
+            SESSION_ID: {sessionId.slice(0, 8).toUpperCase()}-X-METRIC-WEIGHT
           </p>
         </div>
         <div className="text-right text-[10px] font-bold text-on-surface-variant tracking-widest">
@@ -40,7 +44,7 @@ export function Component() {
       </div>
 
       {/* Metric Cards */}
-      <MetricCards entries={entries} goalKg={goalKg} />
+      <MetricCards entries={entries} goalKg={goalKg} goalType={macroTargets?.goalType} />
 
       {/* Audit Log */}
       <AuditLog entries={entries} />

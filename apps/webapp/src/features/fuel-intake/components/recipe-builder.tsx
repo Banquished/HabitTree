@@ -1,6 +1,7 @@
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { FoodItem, RecipeIngredient } from '@HabitTree/types'
 import { calculateFoodMacros, calculateRecipeMacros } from '../api/macro-calc'
+import { Modal } from '@/shared/modal'
 
 interface Props {
   foodItems: FoodItem[]
@@ -14,16 +15,16 @@ interface Props {
     totalFatG: number
     totalWeightG: number
   }) => void
+  isPending?: boolean
 }
 
-export function RecipeBuilder({ foodItems, onClose, onSubmit }: Props) {
+export function RecipeBuilder({ foodItems, onClose, onSubmit, isPending = false }: Props) {
   const [name, setName] = useState('')
   const [ingredients, setIngredients] = useState<
     Array<{ foodItemId: string; amountG: number }>
   >([])
   const [searchQuery, setSearchQuery] = useState('')
   const [showDropdown, setShowDropdown] = useState(false)
-  const searchRef = useRef<HTMLDivElement>(null)
 
   const filteredItems = useMemo(() => {
     if (!searchQuery.trim()) return []
@@ -63,7 +64,7 @@ export function RecipeBuilder({ foodItems, onClose, onSubmit }: Props) {
     )
   }
 
-  const canSubmit = name.trim() !== '' && ingredients.length > 0
+  const canSubmit = name.trim() !== '' && ingredients.length > 0 && !isPending
 
   function handleSubmit() {
     if (!canSubmit) return
@@ -75,25 +76,8 @@ export function RecipeBuilder({ foodItems, onClose, onSubmit }: Props) {
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-surface/90 backdrop-blur"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
-      }}
-    >
-      <div className="bg-surface-container w-full max-w-lg p-6 space-y-5">
-        <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold tracking-widest uppercase text-primary">
-            {'>'} BUILD_RECIPE
-          </span>
-          <button
-            onClick={onClose}
-            className="text-on-surface-variant hover:text-primary transition-colors"
-          >
-            <span className="material-symbols-outlined text-xl">close</span>
-          </button>
-        </div>
-
+    <Modal open onClose={onClose} title="BUILD_RECIPE">
+      <div className="space-y-5">
         <div>
           <label className="block text-[10px] font-bold tracking-widest uppercase text-on-surface-variant mb-1">
             RECIPE_DESIGNATION
@@ -108,10 +92,8 @@ export function RecipeBuilder({ foodItems, onClose, onSubmit }: Props) {
         </div>
 
         <div>
-          <label className="block text-[10px] font-bold tracking-widest uppercase text-on-surface-variant mb-1">
-            INGREDIENT_SELECTOR
-          </label>
-          <div ref={searchRef} className="relative">
+          <label className="font-mono text-[10px] text-on-surface-variant label-tracked">SEARCH</label>
+          <div className="relative mt-1">
             <input
               type="text"
               value={searchQuery}
@@ -123,7 +105,7 @@ export function RecipeBuilder({ foodItems, onClose, onSubmit }: Props) {
               onBlur={() => {
                 setTimeout(() => setShowDropdown(false), 150)
               }}
-              placeholder="SEARCH_FOOD_ITEMS..."
+              placeholder="e.g. oats, chicken"
               className="w-full bg-surface-container-high px-4 py-3 text-on-surface font-mono text-sm outline-none focus:ring-1 focus:ring-primary"
             />
             {showDropdown && filteredItems.length > 0 && (
@@ -182,7 +164,8 @@ export function RecipeBuilder({ foodItems, onClose, onSubmit }: Props) {
                   </span>
                   <button
                     onClick={() => removeIngredient(index)}
-                    className="text-on-surface-variant hover:text-primary transition-colors"
+                    className="text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
+                    aria-label="Remove ingredient"
                   >
                     <span className="material-symbols-outlined text-lg">
                       close
@@ -240,11 +223,12 @@ export function RecipeBuilder({ foodItems, onClose, onSubmit }: Props) {
         <button
           onClick={handleSubmit}
           disabled={!canSubmit}
-          className="w-full bg-primary text-on-primary text-[10px] font-black tracking-widest uppercase px-6 py-3 hover:shadow-[0_0_20px_rgba(171,255,2,0.2)] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+          className="w-full bg-primary text-on-primary text-[10px] font-black tracking-widest uppercase px-6 py-3 hover:shadow-[0_0_20px_rgba(171,255,2,0.2)] transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
         >
+          {isPending && <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>}
           SAVE_RECIPE
         </button>
       </div>
-    </div>
+    </Modal>
   )
 }

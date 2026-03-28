@@ -1,21 +1,19 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Mission, BioProfile, BioResult } from '@HabitTree/types'
-import { generateMilestones } from './calculations'
+import { addDays, generateMilestones } from './calculations'
 
 interface MissionState {
   missions: Mission[]
   activeMissionId: string | null
+  setMissions: (missions: Mission[]) => void
+  setActiveMissionId: (id: string | null) => void
+  upsertMission: (mission: Mission) => void
+  archiveMissions: () => void
   getActiveMission: () => Mission | null
   createMission: (profile: BioProfile, result: BioResult) => Mission
   abandonMission: (id: string) => void
   completeMission: (id: string) => void
-}
-
-function addDays(date: Date, days: number): Date {
-  const d = new Date(date)
-  d.setDate(d.getDate() + days)
-  return d
 }
 
 export const useMissionStore = create<MissionState>()(
@@ -23,6 +21,30 @@ export const useMissionStore = create<MissionState>()(
     (set, get) => ({
       missions: [],
       activeMissionId: null,
+      setMissions: (missions) => set({ missions }),
+      setActiveMissionId: (id) => set({ activeMissionId: id }),
+
+      upsertMission: (mission) =>
+        set((s) => {
+          const exists = s.missions.some((m) => m.id === mission.id)
+          return {
+            missions: exists
+              ? s.missions.map((m) => (m.id === mission.id ? mission : m))
+              : [...s.missions, mission],
+          }
+        }),
+
+      archiveMissions: () =>
+        set((s) => {
+          const thirtyDaysAgo = new Date()
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+          return {
+            missions: s.missions.filter((m) => {
+              if (m.status !== 'completed' && m.status !== 'abandoned') return true
+              return new Date(m.endDate) >= thirtyDaysAgo
+            }),
+          }
+        }),
 
       getActiveMission: () => {
         const { missions, activeMissionId } = get()

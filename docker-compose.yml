@@ -1,0 +1,25 @@
+services:
+  db:
+    image: postgres:16-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: habittree
+      POSTGRES_USER: habittree
+      POSTGRES_PASSWORD: habittree
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: ./apps/backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://habittree:habittree@db:5432/habittree
+      CORS_ORIGINS: http://localhost:5173
+    depends_on:
+      - db
+
+volumes:
+  pgdata:

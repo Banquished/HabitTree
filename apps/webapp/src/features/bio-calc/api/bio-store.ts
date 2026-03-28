@@ -6,6 +6,7 @@ import { calculateBio, getDefaultCalorieAdjustment } from './calculations'
 interface BioState {
   profile: BioProfile
   result: BioResult | null
+  setProfile: (profile: BioProfile) => void
   updateProfile: (patch: Partial<BioProfile>) => void
   runAnalysis: () => BioResult
 }
@@ -30,6 +31,7 @@ export const useBioStore = create<BioState>()(
     (set, get) => ({
       profile: DEFAULT_PROFILE,
       result: null,
+      setProfile: (profile) => set({ profile }),
       updateProfile: (patch) =>
         set((s) => {
           const next = { ...s.profile, ...patch }

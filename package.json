@@ -6,7 +6,8 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently -n web,mobile,api -c blue,green,yellow \"npm run dev:web\" \"npm run dev:mobile\" \"npm run dev:api\"",
+    "dev": "concurrently -n db,api,web -c magenta,yellow,blue \"npm run dev:db\" \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:db": "docker compose up db -d",
     "dev:web": "npm -w apps/webapp run dev",
     "dev:mobile": "npm -w apps/mobile run start",
     "dev:api": "cd apps/backend && set PYTHONIOENCODING=utf-8&& uv run fastapi dev",

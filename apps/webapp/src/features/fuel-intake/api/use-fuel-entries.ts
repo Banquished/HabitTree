@@ -1,22 +1,38 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useFuelStore } from './fuel-store'
+import { useApiClient, isNetworkError } from '@/shared/api-context'
 import type { FuelEntry, MealProtocol } from '@HabitTree/types'
 
 export function useFuelEntries() {
+  const api = useApiClient()
   return useQuery({
     queryKey: ['fuel-entries'],
-    queryFn: () => useFuelStore.getState().entries,
-    staleTime: Infinity,
+    queryFn: async () => {
+      try {
+        const data = await api.getFuelEntries()
+        useFuelStore.getState().setEntries(data)
+        return data
+      } catch (err) {
+        if (isNetworkError(err)) return useFuelStore.getState().entries
+        throw err
+      }
+    },
   })
 }
 
 export function useAddFuelEntry() {
+  const api = useApiClient()
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: Omit<FuelEntry, 'id'>) => {
+    mutationFn: async (data: Omit<FuelEntry, 'id'>) => {
       const entry: FuelEntry = { id: crypto.randomUUID(), ...data }
       useFuelStore.getState().addEntry(entry)
-      return Promise.resolve(entry)
+      try {
+        return await api.createFuelEntry(data)
+      } catch (err) {
+        if (isNetworkError(err)) return entry
+        throw err
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fuel-entries'] })
@@ -25,11 +41,16 @@ export function useAddFuelEntry() {
 }
 
 export function useRemoveFuelEntry() {
+  const api = useApiClient()
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) => {
+    mutationFn: async (id: string) => {
       useFuelStore.getState().removeEntry(id)
-      return Promise.resolve()
+      try {
+        await api.deleteFuelEntry(id)
+      } catch (err) {
+        if (!isNetworkError(err)) throw err
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fuel-entries'] })
@@ -38,20 +59,35 @@ export function useRemoveFuelEntry() {
 }
 
 export function useMealProtocols() {
+  const api = useApiClient()
   return useQuery({
     queryKey: ['meal-protocols'],
-    queryFn: () => useFuelStore.getState().protocols,
-    staleTime: Infinity,
+    queryFn: async () => {
+      try {
+        const data = await api.getMealProtocols()
+        useFuelStore.getState().setProtocols(data)
+        return data
+      } catch (err) {
+        if (isNetworkError(err)) return useFuelStore.getState().protocols
+        throw err
+      }
+    },
   })
 }
 
 export function useAddMealProtocol() {
+  const api = useApiClient()
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: Omit<MealProtocol, 'id'>) => {
+    mutationFn: async (data: Omit<MealProtocol, 'id'>) => {
       const protocol: MealProtocol = { id: crypto.randomUUID(), ...data }
       useFuelStore.getState().addProtocol(protocol)
-      return Promise.resolve(protocol)
+      try {
+        return await api.createMealProtocol(data)
+      } catch (err) {
+        if (isNetworkError(err)) return protocol
+        throw err
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['meal-protocols'] })
@@ -60,11 +96,16 @@ export function useAddMealProtocol() {
 }
 
 export function useRemoveMealProtocol() {
+  const api = useApiClient()
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) => {
+    mutationFn: async (id: string) => {
       useFuelStore.getState().removeProtocol(id)
-      return Promise.resolve()
+      try {
+        await api.deleteMealProtocol(id)
+      } catch (err) {
+        if (!isNetworkError(err)) throw err
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['meal-protocols'] })
@@ -73,9 +114,10 @@ export function useRemoveMealProtocol() {
 }
 
 export function useExecuteProtocol() {
+  const api = useApiClient()
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (protocol: MealProtocol) => {
+    mutationFn: async (protocol: MealProtocol) => {
       const entry: FuelEntry = {
         id: crypto.randomUUID(),
         timestamp: new Date().toISOString(),
@@ -86,7 +128,19 @@ export function useExecuteProtocol() {
         fatG: protocol.fatG,
       }
       useFuelStore.getState().addEntry(entry)
-      return Promise.resolve(entry)
+      try {
+        return await api.createFuelEntry({
+          timestamp: entry.timestamp,
+          name: entry.name,
+          calories: entry.calories,
+          proteinG: entry.proteinG,
+          carbsG: entry.carbsG,
+          fatG: entry.fatG,
+        })
+      } catch (err) {
+        if (isNetworkError(err)) return entry
+        throw err
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fuel-entries'] })

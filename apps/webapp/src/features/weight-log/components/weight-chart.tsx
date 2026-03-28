@@ -53,7 +53,11 @@ export function WeightChart({ entries }: Props) {
   }, [entries])
 
   return (
-    <div className="lg:col-span-2 bg-surface-container-low p-6">
+    <div
+      className="lg:col-span-2 bg-surface-container-low p-6"
+      role="img"
+      aria-label={`Weight trend chart showing the last 90 days. ${chartData.length} data points. ${chartData.length ? `Peak: ${peak.toFixed(1)} KG, Low: ${low.toFixed(1)} KG, Trend: ${trend}` : 'No data available.'}`}
+    >
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 bg-primary animate-pulse" />
@@ -63,7 +67,20 @@ export function WeightChart({ entries }: Props) {
         </div>
       </div>
 
-      <div className="h-64 w-full [&_.recharts-line-curve]:drop-shadow-[0_0_6px_rgba(171,255,2,0.5)]">
+      <div className="h-64 w-full relative [&_.recharts-line-curve]:drop-shadow-[0_0_6px_rgba(171,255,2,0.5)]">
+        {chartData.length === 0 && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center">
+              <span className="material-symbols-outlined text-3xl text-on-surface-variant mb-2">show_chart</span>
+              <p className="text-[10px] font-black tracking-widest uppercase text-on-surface-variant">
+                NO_DATA_IN_RANGE
+              </p>
+              <p className="text-[9px] font-bold tracking-widest uppercase text-on-surface-variant mt-1">
+                LOG_WEIGHT_TO_GENERATE_VISUAL
+              </p>
+            </div>
+          </div>
+        )}
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />

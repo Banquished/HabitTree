@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Modal } from '@/shared/modal'
 import { useAddFuelEntry, useRemoveFuelEntry, useMealProtocols, useAddMealProtocol, useRemoveMealProtocol, useExecuteProtocol } from './api/use-fuel-entries'
 import { useFoodItems, useAddFoodItem, useUpdateFoodItem, useRemoveFoodItem, useRecipes, useAddRecipe, useRemoveRecipe } from './api/use-food-items'
 import { useDailyMacros } from './api/use-daily-macros'
@@ -13,10 +14,11 @@ import { WeeklyOverview } from './components/weekly-overview'
 import { FoodItemList } from './components/food-item-list'
 import { FoodItemForm } from './components/food-item-form'
 import { RecipeBuilder } from './components/recipe-builder'
+import { todayLocal } from '@/shared/date-utils'
 import type { MealProtocol, FoodItem, Recipe } from '@HabitTree/types'
 
 export function Component() {
-  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0, 10))
+  const [selectedDate, setSelectedDate] = useState(todayLocal)
   const [showLogForm, setShowLogForm] = useState(false)
   const [showProtocolForm, setShowProtocolForm] = useState(false)
   const [showFoodForm, setShowFoodForm] = useState(false)
@@ -125,7 +127,7 @@ export function Component() {
         </div>
         <button
           onClick={() => setShowLogForm(true)}
-          className="flex items-center gap-2 bg-primary px-5 py-3 text-on-primary font-black tracking-widest uppercase text-xs hover:shadow-[0_0_20px_rgba(171,255,2,0.2)] transition-all shrink-0"
+          className="flex items-center gap-2 bg-primary px-5 py-3 text-on-primary font-black tracking-widest uppercase text-xs hover:shadow-[0_0_20px_rgba(171,255,2,0.2)] transition-all shrink-0 cursor-pointer"
         >
           <span className="material-symbols-outlined text-lg">add_circle</span>
           LOG_INTAKE
@@ -163,9 +165,10 @@ export function Component() {
           onSubmit={handleLogSubmit}
           foodItems={foodItems}
           recipes={recipes}
+          isPending={addEntry.isPending}
         />
       )}
-      {showProtocolForm && <CreateProtocolForm onClose={() => setShowProtocolForm(false)} onSubmit={handleProtocolSubmit} />}
+      {showProtocolForm && <CreateProtocolForm onClose={() => setShowProtocolForm(false)} onSubmit={handleProtocolSubmit} isPending={addProtocol.isPending} />}
       {showFoodForm && (
         <FoodItemForm
           onClose={() => { setShowFoodForm(false); setEditingFood(null) }}
@@ -178,6 +181,7 @@ export function Component() {
             carbsPer100g: editingFood.carbsPer100g,
             fatPer100g: editingFood.fatPer100g,
           } : undefined}
+          isPending={editingFood ? updateFoodItem.isPending : addFoodItem.isPending}
         />
       )}
       {showRecipeBuilder && (
@@ -185,37 +189,25 @@ export function Component() {
           foodItems={foodItems}
           onClose={() => setShowRecipeBuilder(false)}
           onSubmit={handleRecipeSubmit}
+          isPending={addRecipe.isPending}
         />
       )}
       {showFoodManager && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
-          onClick={(e) => { if (e.target === e.currentTarget) setShowFoodManager(false) }}
-        >
-          <div className="bg-surface-container w-full max-w-lg max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between px-6 py-4 bg-surface-container sticky top-0">
-              <span className="text-[10px] font-bold tracking-widest uppercase text-primary">
-                {'>'} FOOD_DATABASE_MANAGER
-              </span>
-              <button onClick={() => setShowFoodManager(false)} className="text-on-surface-variant hover:text-on-surface transition-colors">
-                <span className="material-symbols-outlined text-xl">close</span>
-              </button>
-            </div>
-            <FoodItemList
-              foodItems={foodItems}
-              onEdit={(item) => {
-                setEditingFood(item)
-                setShowFoodForm(true)
-              }}
-              onRemove={(id) => removeFoodItem.mutate(id)}
-              onLogFromFood={handleLogFromFood}
-              onCreateNew={() => {
-                setEditingFood(null)
-                setShowFoodForm(true)
-              }}
-            />
-          </div>
-        </div>
+        <Modal open onClose={() => setShowFoodManager(false)} title="FOOD_DATABASE_MANAGER">
+          <FoodItemList
+            foodItems={foodItems}
+            onEdit={(item) => {
+              setEditingFood(item)
+              setShowFoodForm(true)
+            }}
+            onRemove={(id) => removeFoodItem.mutate(id)}
+            onLogFromFood={handleLogFromFood}
+            onCreateNew={() => {
+              setEditingFood(null)
+              setShowFoodForm(true)
+            }}
+          />
+        </Modal>
       )}
     </div>
   )

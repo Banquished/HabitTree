@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { FoodItem } from '@HabitTree/types'
+import { ConfirmDialog } from '@/shared/confirm-dialog'
 
 interface Props {
   foodItems: FoodItem[]
@@ -11,6 +12,7 @@ interface Props {
 
 export function FoodItemList({ foodItems, onEdit, onRemove, onLogFromFood, onCreateNew }: Props) {
   const [search, setSearch] = useState('')
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
 
   const filtered = foodItems.filter((item) =>
     item.name.toLowerCase().includes(search.toLowerCase()),
@@ -28,12 +30,13 @@ export function FoodItemList({ foodItems, onEdit, onRemove, onLogFromFood, onCre
       </div>
 
       <div className="bg-surface-container-high px-4 py-3">
+        <label className="font-mono text-[10px] text-on-surface-variant label-tracked">SEARCH</label>
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="SEARCH_FOODS..."
-          className="w-full bg-transparent text-[10px] font-bold tracking-widest uppercase text-on-surface placeholder:text-on-surface-variant outline-none"
+          placeholder="e.g. chicken breast"
+          className="w-full bg-transparent text-[10px] font-bold tracking-widest uppercase text-on-surface placeholder:text-on-surface-variant outline-none mt-1"
         />
       </div>
 
@@ -67,19 +70,22 @@ export function FoodItemList({ foodItems, onEdit, onRemove, onLogFromFood, onCre
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => onLogFromFood(item)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity material-symbols-outlined text-sm text-primary"
+                  className="opacity-60 hover:opacity-100 transition-opacity material-symbols-outlined text-sm text-primary cursor-pointer"
+                  aria-label="Log food item"
                 >
                   add_circle
                 </button>
                 <button
                   onClick={() => onEdit(item)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity material-symbols-outlined text-sm text-on-surface-variant hover:text-primary"
+                  className="opacity-60 hover:opacity-100 transition-opacity material-symbols-outlined text-sm text-on-surface-variant hover:text-primary cursor-pointer"
+                  aria-label="Edit food item"
                 >
                   edit
                 </button>
                 <button
-                  onClick={() => onRemove(item.id)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity material-symbols-outlined text-sm text-error"
+                  onClick={() => setDeleteTarget(item.id)}
+                  className="opacity-60 hover:opacity-100 transition-opacity material-symbols-outlined text-sm text-error cursor-pointer"
+                  aria-label="Delete food item"
                 >
                   delete
                 </button>
@@ -91,10 +97,18 @@ export function FoodItemList({ foodItems, onEdit, onRemove, onLogFromFood, onCre
 
       <button
         onClick={onCreateNew}
-        className="w-full py-3 text-center text-[10px] font-bold tracking-widest uppercase text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors"
+        className="w-full py-3 text-center text-[10px] font-bold tracking-widest uppercase text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors cursor-pointer"
       >
         CREATE_NEW_FOOD
       </button>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => { if (deleteTarget) { onRemove(deleteTarget); setDeleteTarget(null) } }}
+        title="CONFIRM_DELETION"
+        message="This action cannot be undone. The record will be permanently removed."
+      />
     </div>
   )
 }

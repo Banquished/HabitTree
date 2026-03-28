@@ -96,7 +96,7 @@ export function PhysicalCoordinates({ profile, onUpdate }: Props) {
                 key={value}
                 type="button"
                 onClick={() => onUpdate({ activityLevel: value })}
-                className={`rounded-none px-2 py-2 text-[10px] tracking-wider uppercase transition-colors ${
+                className={`rounded-none px-2 py-2 text-[10px] tracking-wider uppercase transition-colors cursor-pointer ${
                   active
                     ? 'bg-primary text-on-primary font-black'
                     : 'bg-surface-container-high text-on-surface-variant font-bold hover:text-on-surface'

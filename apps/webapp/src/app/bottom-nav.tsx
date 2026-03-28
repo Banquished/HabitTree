@@ -2,10 +2,10 @@ import { NavLink } from 'react-router'
 
 const navItems = [
   { to: '/', icon: 'grid_view', label: 'DASH', end: true },
-  { to: '/fuel-intake', icon: 'ev_station', label: 'FUEL' },
-  { to: '/bio-calc', icon: 'calculate', label: 'BIO' },
   { to: '/operations', icon: 'terminal', label: 'OPS' },
+  { to: '/fuel-intake', icon: 'ev_station', label: 'FUEL' },
   { to: '/weight-log', icon: 'monitor_weight', label: 'WEIGHT' },
+  { to: '/bio-calc', icon: 'calculate', label: 'BIO' },
 ] as const
 
 export function BottomNav() {
@@ -23,7 +23,7 @@ export function BottomNav() {
           }
         >
           <span className="material-symbols-outlined text-2xl">{item.icon}</span>
-          <span className="text-[8px] font-bold uppercase tracking-widest">{item.label}</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest">{item.label}</span>
         </NavLink>
       ))}
     </nav>

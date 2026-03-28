@@ -277,3 +277,12 @@ input[type="range"]::-moz-range-thumb {
 input[type="range"]::-moz-range-thumb:active {
   cursor: grabbing;
 }
+
+/* ============================================================
+   RECHARTS — Remove focus outlines on interactive SVG
+   ============================================================ */
+
+.recharts-wrapper:focus,
+.recharts-surface:focus {
+  outline: none;
+}

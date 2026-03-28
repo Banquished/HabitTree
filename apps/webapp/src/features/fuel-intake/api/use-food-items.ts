@@ -1,22 +1,38 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useFoodStore } from './food-store'
+import { useApiClient, isNetworkError } from '@/shared/api-context'
 import type { FoodItem, Recipe } from '@HabitTree/types'
 
 export function useFoodItems() {
+  const api = useApiClient()
   return useQuery({
     queryKey: ['food-items'],
-    queryFn: () => useFoodStore.getState().foodItems,
-    staleTime: Infinity,
+    queryFn: async () => {
+      try {
+        const data = await api.getFoodItems()
+        useFoodStore.getState().setFoodItems(data)
+        return data
+      } catch (err) {
+        if (isNetworkError(err)) return useFoodStore.getState().foodItems
+        throw err
+      }
+    },
   })
 }
 
 export function useAddFoodItem() {
+  const api = useApiClient()
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: Omit<FoodItem, 'id'>) => {
+    mutationFn: async (data: Omit<FoodItem, 'id'>) => {
       const item: FoodItem = { id: crypto.randomUUID(), ...data }
       useFoodStore.getState().addFoodItem(item)
-      return Promise.resolve(item)
+      try {
+        return await api.createFoodItem(data)
+      } catch (err) {
+        if (isNetworkError(err)) return item
+        throw err
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['food-items'] })
@@ -25,11 +41,16 @@ export function useAddFoodItem() {
 }
 
 export function useUpdateFoodItem() {
+  const api = useApiClient()
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, ...patch }: Partial<FoodItem> & { id: string }) => {
+    mutationFn: async ({ id, ...patch }: Partial<FoodItem> & { id: string }) => {
       useFoodStore.getState().updateFoodItem(id, patch)
-      return Promise.resolve()
+      try {
+        await api.updateFoodItem(id, patch)
+      } catch (err) {
+        if (!isNetworkError(err)) throw err
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['food-items'] })
@@ -38,11 +59,16 @@ export function useUpdateFoodItem() {
 }
 
 export function useRemoveFoodItem() {
+  const api = useApiClient()
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) => {
+    mutationFn: async (id: string) => {
       useFoodStore.getState().removeFoodItem(id)
-      return Promise.resolve()
+      try {
+        await api.deleteFoodItem(id)
+      } catch (err) {
+        if (!isNetworkError(err)) throw err
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['food-items'] })
@@ -51,20 +77,35 @@ export function useRemoveFoodItem() {
 }
 
 export function useRecipes() {
+  const api = useApiClient()
   return useQuery({
     queryKey: ['recipes'],
-    queryFn: () => useFoodStore.getState().recipes,
-    staleTime: Infinity,
+    queryFn: async () => {
+      try {
+        const data = await api.getRecipes()
+        useFoodStore.getState().setRecipes(data)
+        return data
+      } catch (err) {
+        if (isNetworkError(err)) return useFoodStore.getState().recipes
+        throw err
+      }
+    },
   })
 }
 
 export function useAddRecipe() {
+  const api = useApiClient()
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: Omit<Recipe, 'id'>) => {
+    mutationFn: async (data: Omit<Recipe, 'id'>) => {
       const recipe: Recipe = { id: crypto.randomUUID(), ...data }
       useFoodStore.getState().addRecipe(recipe)
-      return Promise.resolve(recipe)
+      try {
+        return await api.createRecipe(data)
+      } catch (err) {
+        if (isNetworkError(err)) return recipe
+        throw err
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recipes'] })
@@ -73,11 +114,20 @@ export function useAddRecipe() {
 }
 
 export function useUpdateRecipe() {
+  const api = useApiClient()
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, ...patch }: Partial<Recipe> & { id: string }) => {
+    mutationFn: async ({ id, ...patch }: Partial<Recipe> & { id: string }) => {
       useFoodStore.getState().updateRecipe(id, patch)
-      return Promise.resolve()
+      try {
+        const updated = useFoodStore.getState().recipes.find((r) => r.id === id)
+        if (updated) {
+          const { id: _id, ...data } = updated
+          await api.updateRecipe(id, data)
+        }
+      } catch (err) {
+        if (!isNetworkError(err)) throw err
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recipes'] })
@@ -86,11 +136,16 @@ export function useUpdateRecipe() {
 }
 
 export function useRemoveRecipe() {
+  const api = useApiClient()
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) => {
+    mutationFn: async (id: string) => {
       useFoodStore.getState().removeRecipe(id)
-      return Promise.resolve()
+      try {
+        await api.deleteRecipe(id)
+      } catch (err) {
+        if (!isNetworkError(err)) throw err
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recipes'] })

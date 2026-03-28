@@ -5,6 +5,7 @@ import { PhysicalCoordinates } from './components/physical-coordinates'
 import { MissionParameters } from './components/mission-parameters'
 import { ProcessedReadout } from './components/processed-readout'
 import { MissionBriefing } from './components/mission-briefing'
+import { Modal } from '@/shared/modal'
 import type { BioProfile } from '@HabitTree/types'
 
 export function Component() {
@@ -31,6 +32,11 @@ export function Component() {
     setShowConfirm(false)
     runAnalysis.mutate()
   }
+
+  const macroSum = profile?.customMacros
+    ? profile.customMacros.proteinPct + profile.customMacros.carbsPct + profile.customMacros.fatPct
+    : 100
+  const canDeploy = macroSum === 100
 
   if (!profile) return null
 
@@ -66,33 +72,39 @@ export function Component() {
           <div className="relative">
             <button
               onClick={handleDeploy}
-              disabled={runAnalysis.isPending}
-              className="w-full bg-primary py-4 text-on-primary font-black tracking-widest uppercase text-sm hover:shadow-[0_0_20px_rgba(171,255,2,0.2)] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              disabled={runAnalysis.isPending || !canDeploy}
+              className="w-full bg-primary py-4 text-on-primary font-black tracking-widest uppercase text-sm hover:shadow-[0_0_20px_rgba(171,255,2,0.2)] transition-all flex items-center justify-center gap-2 disabled:opacity-40 cursor-pointer"
             >
+              {runAnalysis.isPending && <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>}
               DEPLOY_MISSION
               <span className="material-symbols-outlined text-lg">bolt</span>
             </button>
 
-            {showConfirm && (
-              <div className="absolute inset-0 bg-surface-container-low flex flex-col items-center justify-center gap-3 z-10">
-                <p className="text-[10px] font-black tracking-widest uppercase text-error text-center">
-                  ACTIVE_MISSION_DETECTED<br />
-                  DEPLOYING_NEW_MISSION_WILL_ABANDON_CURRENT
-                </p>
-                <div className="flex gap-2">
-                  <button
-                    onClick={confirmDeploy}
-                    className="px-4 py-2 bg-primary text-on-primary text-[10px] font-black tracking-widest uppercase hover:shadow-[0_0_20px_rgba(171,255,2,0.2)] transition-all"
-                  >
-                    CONFIRM_DEPLOY
-                  </button>
-                  <button
-                    onClick={() => setShowConfirm(false)}
-                    className="px-4 py-2 bg-surface-container-high text-on-surface-variant text-[10px] font-black tracking-widest uppercase hover:text-on-surface transition-colors"
-                  >
-                    CANCEL
-                  </button>
-                </div>
+            <Modal open={showConfirm} onClose={() => setShowConfirm(false)} title="ACTIVE_MISSION_DETECTED">
+              <p className="text-[10px] font-black tracking-widest uppercase text-error text-center mb-6">
+                DEPLOYING_NEW_MISSION_WILL_ABANDON_CURRENT
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={confirmDeploy}
+                  disabled={runAnalysis.isPending}
+                  className="flex-1 px-4 py-2 bg-primary text-on-primary text-[10px] font-black tracking-widest uppercase hover:shadow-[0_0_20px_rgba(171,255,2,0.2)] transition-all cursor-pointer disabled:opacity-40 flex items-center justify-center gap-2"
+                >
+                  {runAnalysis.isPending && <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>}
+                  CONFIRM_DEPLOY
+                </button>
+                <button
+                  onClick={() => setShowConfirm(false)}
+                  className="flex-1 px-4 py-2 bg-surface-container-high text-on-surface-variant text-[10px] font-black tracking-widest uppercase hover:text-on-surface transition-colors cursor-pointer"
+                >
+                  CANCEL
+                </button>
+              </div>
+            </Modal>
+
+            {!canDeploy && (
+              <div className="text-[9px] font-bold text-error tracking-widest uppercase text-center mt-2">
+                MACRO_DISTRIBUTION_MUST_EQUAL_100% (CURRENT: {macroSum}%)
               </div>
             )}
           </div>

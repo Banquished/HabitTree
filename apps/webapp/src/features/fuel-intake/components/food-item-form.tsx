@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Modal } from '@/shared/modal'
 
 interface FoodItemData {
   name: string
@@ -13,9 +14,10 @@ interface Props {
   onClose: () => void
   onSubmit: (data: FoodItemData) => void
   initialData?: FoodItemData
+  isPending?: boolean
 }
 
-export function FoodItemForm({ onClose, onSubmit, initialData }: Props) {
+export function FoodItemForm({ onClose, onSubmit, initialData, isPending = false }: Props) {
   const [name, setName] = useState(initialData?.name ?? '')
   const [brand, setBrand] = useState(initialData?.brand ?? '')
   const [proteinPer100g, setProteinPer100g] = useState(
@@ -49,7 +51,7 @@ export function FoodItemForm({ onClose, onSubmit, initialData }: Props) {
     setCaloriesPer100g(value)
   }
 
-  const canSubmit = confirmed && name.trim() !== ''
+  const canSubmit = confirmed && name.trim() !== '' && !isPending
 
   function handleSubmit() {
     if (!canSubmit) return
@@ -67,22 +69,8 @@ export function FoodItemForm({ onClose, onSubmit, initialData }: Props) {
     'w-full bg-surface-container-high px-3 py-2 text-on-surface font-bold focus:outline-none focus:ring-1 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
-      }}
-    >
-      <div className="bg-surface-container p-6 w-full max-w-md space-y-4">
-        <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold tracking-widest uppercase text-primary">
-            {'>'} {initialData ? 'EDIT_FOOD_ITEM' : 'ADD_FOOD_ITEM'}
-          </span>
-          <button onClick={onClose} className="text-on-surface-variant hover:text-on-surface transition-colors">
-            <span className="material-symbols-outlined text-xl">close</span>
-          </button>
-        </div>
-
+    <Modal open onClose={onClose} title={initialData ? 'EDIT_FOOD_ITEM' : 'ADD_FOOD_ITEM'}>
+      <div className="space-y-4">
         <div>
           <label className="block text-[9px] font-bold tracking-widest uppercase text-on-surface-variant mb-1">
             DESIGNATION
@@ -200,11 +188,12 @@ export function FoodItemForm({ onClose, onSubmit, initialData }: Props) {
         <button
           onClick={handleSubmit}
           disabled={!canSubmit}
-          className="w-full bg-primary py-4 text-on-primary font-black tracking-widest uppercase text-xs hover:shadow-[0_0_20px_rgba(171,255,2,0.2)] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+          className="w-full bg-primary py-4 text-on-primary font-black tracking-widest uppercase text-xs hover:shadow-[0_0_20px_rgba(171,255,2,0.2)] transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
         >
+          {isPending && <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>}
           REGISTER_FOOD_ITEM
         </button>
       </div>
-    </div>
+    </Modal>
   )
 }

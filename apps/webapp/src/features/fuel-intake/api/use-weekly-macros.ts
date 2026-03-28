@@ -54,7 +54,7 @@ export function useWeeklyMacros(dateStr: string): WeeklyMacros {
     const totalCalories = Math.round(entries.reduce((s, e) => s + e.calories, 0))
 
     const uniqueDays = new Set(entries.map((e) => e.timestamp.slice(0, 10)))
-    const daysLogged = uniqueDays.size || 1
+    const daysLogged = uniqueDays.size
 
     return {
       weekStart,
@@ -64,10 +64,10 @@ export function useWeeklyMacros(dateStr: string): WeeklyMacros {
       totalFatG,
       totalCalories,
       daysLogged,
-      avgProteinG: Math.round(totalProteinG / daysLogged),
-      avgCarbsG: Math.round(totalCarbsG / daysLogged),
-      avgFatG: Math.round(totalFatG / daysLogged),
-      avgCalories: Math.round(totalCalories / daysLogged),
+      avgProteinG: daysLogged > 0 ? Math.round(totalProteinG / daysLogged) : 0,
+      avgCarbsG: daysLogged > 0 ? Math.round(totalCarbsG / daysLogged) : 0,
+      avgFatG: daysLogged > 0 ? Math.round(totalFatG / daysLogged) : 0,
+      avgCalories: daysLogged > 0 ? Math.round(totalCalories / daysLogged) : 0,
       entries,
     }
   }, [allEntries, dateStr])

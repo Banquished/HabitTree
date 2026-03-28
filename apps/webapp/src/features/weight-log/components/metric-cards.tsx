@@ -4,9 +4,10 @@ import type { WeightEntry } from '@HabitTree/types'
 interface Props {
   entries: WeightEntry[]
   goalKg: number
+  goalType?: string
 }
 
-export function MetricCards({ entries, goalKg }: Props) {
+export function MetricCards({ entries, goalKg, goalType = 'cut' }: Props) {
   const metrics = useMemo(() => {
     if (!entries.length) return null
 
@@ -19,6 +20,7 @@ export function MetricCards({ entries, goalKg }: Props) {
     // Delta 30d
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
     const oldEntry = sorted.find((e) => new Date(e.timestamp) <= thirtyDaysAgo)
+    const hasOldData = !!oldEntry
     const delta30d = oldEntry ? latest.weightKg - oldEntry.weightKg : 0
 
     // Last update
@@ -31,24 +33,43 @@ export function MetricCards({ entries, goalKg }: Props) {
 
     // Goal progress
     const startWeight = sorted[sorted.length - 1].weightKg
-    const totalDelta = startWeight - goalKg
-    const currentDelta = startWeight - latest.weightKg
-    const goalProgress = totalDelta > 0 ? Math.min(100, Math.round((currentDelta / totalDelta) * 100)) : 0
+    const totalDelta = Math.abs(startWeight - goalKg)
+    const currentDelta = goalType === 'bulk'
+      ? latest.weightKg - startWeight
+      : startWeight - latest.weightKg
+    const goalProgress = totalDelta > 0 ? Math.min(100, Math.max(0, Math.round((currentDelta / totalDelta) * 100))) : 0
 
     // System health
     const recentEntries = sorted.filter(
       (e) => new Date(e.timestamp) >= thirtyDaysAgo
     ).length
-    const trending = delta30d < 0
+    const trendingRight = goalType === 'bulk' ? delta30d > 0 : delta30d < 0
+    const deltaGood = goalType === 'bulk' ? delta30d >= 0 : delta30d <= 0
     const health =
-      recentEntries >= 8 && trending ? 'EXCELLENT' :
-      recentEntries >= 4 && trending ? 'GOOD' :
+      recentEntries >= 8 && trendingRight ? 'EXCELLENT' :
+      recentEntries >= 4 && trendingRight ? 'GOOD' :
       recentEntries >= 4 ? 'FAIR' : 'DEGRADED'
 
-    return { latest, delta30d, lastUpdateLabel, goalProgress, health }
+    return { latest, delta30d, hasOldData, deltaGood, lastUpdateLabel, goalProgress, health }
   }, [entries, goalKg])
 
-  if (!metrics) return null
+  if (!metrics) return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      {['DELTA_30D', 'CURRENT_MEDIAN', 'SYSTEM_GOAL', 'SYSTEM_HEALTH'].map((label) => (
+        <div key={label} className="bg-surface-container-low p-5">
+          <div className="text-[9px] font-bold text-on-surface-variant tracking-widest uppercase mb-4">
+            {label}
+          </div>
+          <div className="text-sm font-black italic text-on-surface-variant tracking-tight uppercase">
+            AWAITING_DATA...
+          </div>
+          <div className="mt-4 text-[9px] font-bold text-on-surface-variant tracking-widest uppercase">
+            LOG_WEIGHT_TO_VIEW_METRICS
+          </div>
+        </div>
+      ))}
+    </div>
+  )
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -57,18 +78,29 @@ export function MetricCards({ entries, goalKg }: Props) {
         <div className="text-[9px] font-bold text-on-surface-variant tracking-widest uppercase mb-4">
           DELTA_30D
         </div>
-        <div className="flex items-baseline gap-2">
-          <span className={`text-3xl font-black italic font-mono ${metrics.delta30d <= 0 ? 'text-primary glow-sm' : 'text-error'}`}>
-            {metrics.delta30d > 0 ? '+' : ''}{metrics.delta30d.toFixed(1)}
-          </span>
-          <span className="text-xs font-bold text-on-surface-variant tracking-widest">KG</span>
-        </div>
-        <div className="mt-4 flex items-center gap-1 text-[9px] font-bold text-primary tracking-widest uppercase">
-          <span className="material-symbols-outlined text-xs">
-            {metrics.delta30d <= 0 ? 'trending_down' : 'trending_up'}
-          </span>
-          {metrics.delta30d <= 0 ? 'TARGET_ON_TRACK' : 'ABOVE_BASELINE'}
-        </div>
+        {metrics.hasOldData ? (
+          <>
+            <div className="flex items-baseline gap-2">
+              <span className={`text-3xl font-black italic font-mono ${metrics.deltaGood ? 'text-primary glow-sm' : 'text-error'}`}>
+                {metrics.delta30d > 0 ? '+' : ''}{metrics.delta30d.toFixed(1)}
+              </span>
+              <span className="text-xs font-bold text-on-surface-variant tracking-widest">KG</span>
+            </div>
+            <div className="mt-4 flex items-center gap-1 text-[9px] font-bold text-primary tracking-widest uppercase">
+              <span className="material-symbols-outlined text-xs">
+                {metrics.deltaGood ? 'trending_down' : 'trending_up'}
+              </span>
+              {metrics.deltaGood ? 'TARGET_ON_TRACK' : 'ABOVE_BASELINE'}
+            </div>
+          </>
+        ) : (
+          <>
+            <span className="text-sm font-black italic text-on-surface-variant">INSUFFICIENT_DATA</span>
+            <div className="mt-4 text-[9px] font-bold text-on-surface-variant tracking-widest uppercase">
+              AWAITING_30D_BASELINE
+            </div>
+          </>
+        )}
       </div>
 
       {/* Current Median */}

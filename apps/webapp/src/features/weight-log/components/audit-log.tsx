@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { WeightEntry } from '@HabitTree/types'
 import { useUpdateWeightEntry, useRemoveWeightEntry } from '../api/use-weight-entries'
+import { ConfirmDialog } from '@/shared/confirm-dialog'
 
 interface Props {
   entries: WeightEntry[]
@@ -30,6 +31,7 @@ interface EditState {
 export function AuditLog({ entries }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editState, setEditState] = useState<EditState>({ weightKg: '', date: '', time: '' })
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
   const updateEntry = useUpdateWeightEntry()
   const removeEntry = useRemoveWeightEntry()
 
@@ -58,14 +60,21 @@ export function AuditLog({ entries }: Props) {
   }
 
   function saveEdit(id: string) {
-    const timestamp = new Date(`${editState.date}T${editState.time}`).toISOString()
+    const timestamp = new Date(`${editState.date}T${editState.time}:00`).toISOString()
     updateEntry.mutate({ id, weightKg: Number(editState.weightKg), timestamp })
     setEditingId(null)
   }
 
-  function handleDelete(id: string) {
-    removeEntry.mutate(id)
-    if (editingId === id) setEditingId(null)
+  function handleEditKeyDown(e: React.KeyboardEvent, id: string) {
+    if (e.key === 'Enter') saveEdit(id)
+    if (e.key === 'Escape') cancelEdit()
+  }
+
+  function confirmDelete() {
+    if (!deleteTarget) return
+    removeEntry.mutate(deleteTarget)
+    if (editingId === deleteTarget) setEditingId(null)
+    setDeleteTarget(null)
   }
 
   return (
@@ -107,12 +116,14 @@ export function AuditLog({ entries }: Props) {
                           type="date"
                           value={editState.date}
                           onChange={(e) => setEditState((s) => ({ ...s, date: e.target.value }))}
+                          onKeyDown={(e) => handleEditKeyDown(e, row.id)}
                           className="bg-surface-container-high text-on-surface text-[10px] font-bold font-mono px-1 py-0.5 border-none focus:outline-none focus:ring-1 focus:ring-primary [color-scheme:dark]"
                         />
                         <input
                           type="time"
                           value={editState.time}
                           onChange={(e) => setEditState((s) => ({ ...s, time: e.target.value }))}
+                          onKeyDown={(e) => handleEditKeyDown(e, row.id)}
                           className="bg-surface-container-high text-on-surface text-[10px] font-bold font-mono px-1 py-0.5 border-none focus:outline-none focus:ring-1 focus:ring-primary [color-scheme:dark]"
                         />
                       </div>
@@ -126,8 +137,10 @@ export function AuditLog({ entries }: Props) {
                       <input
                         type="number"
                         step="0.1"
+                        autoFocus
                         value={editState.weightKg}
                         onChange={(e) => setEditState((s) => ({ ...s, weightKg: e.target.value }))}
+                        onKeyDown={(e) => handleEditKeyDown(e, row.id)}
                         className="bg-surface-container-high text-primary font-black italic text-sm font-mono w-20 px-1 py-0.5 border-none focus:outline-none focus:ring-1 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
                     ) : (
@@ -144,8 +157,10 @@ export function AuditLog({ entries }: Props) {
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => saveEdit(row.id)}
-                          className="px-2 py-0.5 bg-primary/10 text-primary text-[8px] font-black tracking-widest uppercase hover:bg-primary/20 transition-colors"
+                          disabled={updateEntry.isPending}
+                          className="px-2 py-0.5 bg-primary/10 text-primary text-[8px] font-black tracking-widest uppercase hover:bg-primary/20 transition-colors disabled:opacity-40 flex items-center gap-1"
                         >
+                          {updateEntry.isPending && <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>}
                           SAVE
                         </button>
                         <button
@@ -156,15 +171,17 @@ export function AuditLog({ entries }: Props) {
                         </button>
                       </div>
                     ) : (
-                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center justify-end gap-1 opacity-60 hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => startEdit(row)}
+                          aria-label={`Edit entry ${row.id.slice(0, 8)}`}
                           className="px-2 py-0.5 bg-primary/10 text-primary text-[8px] font-black tracking-widest uppercase hover:bg-primary/20 transition-colors"
                         >
                           EDIT
                         </button>
                         <button
-                          onClick={() => handleDelete(row.id)}
+                          onClick={() => setDeleteTarget(row.id)}
+                          aria-label={`Delete entry ${row.id.slice(0, 8)}`}
                           className="px-2 py-0.5 bg-error/10 text-error text-[8px] font-black tracking-widest uppercase hover:bg-error/20 transition-colors"
                         >
                           DELETE
@@ -178,6 +195,16 @@ export function AuditLog({ entries }: Props) {
           </tbody>
         </table>
       </div>
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        title="CONFIRM_DELETE"
+        message="THIS_ACTION_IS_IRREVERSIBLE. THE_WEIGHT_ENTRY_WILL_BE_PERMANENTLY_REMOVED."
+        confirmLabel="DELETE"
+        isPending={removeEntry.isPending}
+      />
     </div>
   )
 }

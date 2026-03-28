@@ -1,4 +1,7 @@
+import { useState } from 'react'
 import type { FuelEntry } from '@HabitTree/types'
+import { ConfirmDialog } from '@/shared/confirm-dialog'
+import { todayLocal } from '@/shared/date-utils'
 
 interface Props {
   entries: FuelEntry[]
@@ -19,6 +22,8 @@ function shiftDate(date: string, days: number): string {
 }
 
 export function EntryLogStream({ entries, selectedDate, onDateChange, onRemove }: Props) {
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
+
   return (
     <div>
       <div className="bg-surface-container px-6 py-4 flex items-center justify-between">
@@ -31,21 +36,23 @@ export function EntryLogStream({ entries, selectedDate, onDateChange, onRemove }
           <button
             type="button"
             onClick={() => onDateChange(shiftDate(selectedDate, -1))}
-            className="material-symbols-outlined text-sm text-on-surface-variant hover:text-primary transition-colors"
+            className="material-symbols-outlined text-sm text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
+            aria-label="Previous day"
           >
             chevron_left
           </button>
           <button
             type="button"
-            onClick={() => onDateChange(new Date().toISOString().slice(0, 10))}
-            className="text-[9px] font-bold tracking-widest uppercase text-on-surface-variant hover:text-primary transition-colors"
+            onClick={() => onDateChange(todayLocal())}
+            className="text-[9px] font-bold tracking-widest uppercase text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
           >
             TODAY
           </button>
           <button
             type="button"
             onClick={() => onDateChange(shiftDate(selectedDate, 1))}
-            className="material-symbols-outlined text-sm text-on-surface-variant hover:text-primary transition-colors"
+            className="material-symbols-outlined text-sm text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
+            aria-label="Next day"
           >
             chevron_right
           </button>
@@ -91,8 +98,9 @@ export function EntryLogStream({ entries, selectedDate, onDateChange, onRemove }
               </div>
               <button
                 type="button"
-                onClick={() => onRemove(entry.id)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity material-symbols-outlined text-sm text-error"
+                onClick={() => setDeleteTarget(entry.id)}
+                className="opacity-60 hover:opacity-100 transition-opacity material-symbols-outlined text-sm text-error cursor-pointer"
+                aria-label="Delete entry"
               >
                 delete
               </button>
@@ -100,6 +108,14 @@ export function EntryLogStream({ entries, selectedDate, onDateChange, onRemove }
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => { if (deleteTarget) { onRemove(deleteTarget); setDeleteTarget(null) } }}
+        title="CONFIRM_DELETION"
+        message="This action cannot be undone. The record will be permanently removed."
+      />
     </div>
   )
 }

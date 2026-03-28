@@ -47,7 +47,7 @@ export function calculateBio(profile: BioProfile): BioResult {
   return { bmr, tdee, effectiveTdee, targetCalories, calorieAdjustment, proteinG, carbsG, fatG, proteinPct, carbsPct, fatPct }
 }
 
-function addDays(date: Date, days: number): Date {
+export function addDays(date: Date, days: number): Date {
   const d = new Date(date)
   d.setDate(d.getDate() + days)
   return d

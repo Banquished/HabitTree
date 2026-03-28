@@ -17,11 +17,12 @@ interface MacroTargets {
 interface Props {
   dailyMacros: DailyMacros
   macroTargets: MacroTargets | null
+  vertical?: boolean
 }
 
-export function DailyMacroCards({ dailyMacros, macroTargets }: Props) {
+export function DailyMacroCards({ dailyMacros, macroTargets, vertical }: Props) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <div className={vertical ? 'flex flex-col gap-3' : 'grid grid-cols-1 md:grid-cols-3 gap-3'}>
       <MacroProgressCard
         label="PROTEIN INTAKE"
         currentG={dailyMacros.totalProteinG}

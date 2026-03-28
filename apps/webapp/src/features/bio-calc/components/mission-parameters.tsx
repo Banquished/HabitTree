@@ -66,6 +66,7 @@ export function MissionParameters({ profile, targetCalories, onUpdate }: Props) 
             max={24}
             value={profile.durationWeeks}
             onChange={(e) => onUpdate({ durationWeeks: Number(e.target.value) })}
+            aria-label="Duration in weeks"
             className="w-full rounded-none"
           />
           <div className="flex justify-between">
@@ -90,7 +91,7 @@ export function MissionParameters({ profile, targetCalories, onUpdate }: Props) 
                   key={value}
                   type="button"
                   onClick={() => onUpdate({ goalType: value })}
-                  className={`flex items-center gap-2 rounded-none px-3 py-2 text-left transition-colors ${
+                  className={`flex items-center gap-2 rounded-none px-3 py-2 text-left transition-colors cursor-pointer ${
                     selected
                       ? 'bg-primary text-on-primary font-black'
                       : 'bg-surface-container-high text-on-surface-variant font-bold hover:text-on-surface'
@@ -151,6 +152,7 @@ export function MissionParameters({ profile, targetCalories, onUpdate }: Props) 
           step={25}
           value={profile.calorieAdjustment}
           onChange={(e) => onUpdate({ calorieAdjustment: Number(e.target.value) })}
+          aria-label="Calorie adjustment"
           className="w-full rounded-none"
         />
         <div className="flex justify-between">
@@ -171,7 +173,7 @@ export function MissionParameters({ profile, targetCalories, onUpdate }: Props) 
           <button
             type="button"
             onClick={() => onUpdate({ customMacros: null })}
-            className="text-[8px] font-black tracking-widest uppercase text-primary hover:text-on-surface"
+            className="text-[8px] font-black tracking-widest uppercase text-primary hover:text-on-surface cursor-pointer"
           >
             RESET_TO_PRESET
           </button>

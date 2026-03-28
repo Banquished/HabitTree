@@ -3,10 +3,10 @@ import { useLayoutStore } from './layout-store'
 
 const navItems = [
   { to: '/', icon: 'grid_view', label: 'DASHBOARD', end: true },
-  { to: '/fuel-intake', icon: 'ev_station', label: 'FUEL INTAKE' },
-  { to: '/bio-calc', icon: 'calculate', label: 'BIO-CALC' },
   { to: '/operations', icon: 'terminal', label: 'OPERATIONS' },
+  { to: '/fuel-intake', icon: 'ev_station', label: 'FUEL INTAKE' },
   { to: '/weight-log', icon: 'monitor_weight', label: 'WEIGHT LOG' },
+  { to: '/bio-calc', icon: 'calculate', label: 'BIO-CALC' },
 ] as const
 
 export function Sidebar() {
@@ -54,17 +54,17 @@ export function Sidebar() {
 
       {/* Bottom Section */}
       <div className="mt-auto px-2 pb-4 flex flex-col gap-1">
-        <button className="flex items-center gap-3 px-3 py-2.5 min-h-[44px] bg-primary text-on-primary overflow-hidden hover:shadow-[0_0_10px_rgba(171,255,2,0.4)] transition-shadow">
+        <button aria-label="Initialize procedure" className="flex items-center gap-3 px-3 py-2.5 min-h-[44px] bg-primary text-on-primary overflow-hidden hover:shadow-[0_0_10px_rgba(171,255,2,0.4)] transition-shadow cursor-pointer">
           <span className="material-symbols-outlined text-xl flex-shrink-0">add_circle</span>
           <span className="text-[10px] font-bold uppercase tracking-widest whitespace-nowrap overflow-hidden">
             INITIALIZE_PROCEDURE
           </span>
         </button>
-        <button className="flex items-center gap-3 px-3 py-2 min-h-[44px] text-on-surface-variant hover:text-primary transition-colors overflow-hidden">
+        <button aria-label="Logout" className="flex items-center gap-3 px-3 py-2 min-h-[44px] text-on-surface-variant hover:text-primary transition-colors overflow-hidden cursor-pointer">
           <span className="material-symbols-outlined text-xl flex-shrink-0">logout</span>
           <span className="text-[10px] font-bold uppercase tracking-widest whitespace-nowrap overflow-hidden">LOGOUT</span>
         </button>
-        <button className="flex items-center gap-3 px-3 py-2 min-h-[44px] text-on-surface-variant hover:text-primary transition-colors overflow-hidden">
+        <button aria-label="Help" className="flex items-center gap-3 px-3 py-2 min-h-[44px] text-on-surface-variant hover:text-primary transition-colors overflow-hidden cursor-pointer">
           <span className="material-symbols-outlined text-xl flex-shrink-0">help</span>
           <span className="text-[10px] font-bold uppercase tracking-widest whitespace-nowrap overflow-hidden">HELP</span>
         </button>

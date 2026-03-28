@@ -28,7 +28,8 @@ export function WeeklyOverview({ weeklyMacros, macroTargets }: Props) {
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
-        className="w-full bg-surface-container px-6 py-4 flex items-center justify-between hover:bg-surface-container-high transition-colors"
+        className="w-full bg-surface-container px-6 py-4 flex items-center justify-between hover:bg-surface-container-high transition-colors cursor-pointer"
+        aria-label={expanded ? 'Collapse weekly overview' : 'Expand weekly overview'}
       >
         <span className="text-[10px] font-bold text-primary tracking-widest uppercase italic">
           {'>'} WEEKLY_OVERVIEW [{formatDateLabel(weeklyMacros.weekStart)} — {formatDateLabel(weeklyMacros.weekEnd)}]

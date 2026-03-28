@@ -18,7 +18,7 @@ export function WeightInput() {
 
   function handleSubmit() {
     if (!canSubmit) return
-    const timestamp = new Date(`${date}T${time}`).toISOString()
+    const timestamp = new Date(`${date}T${time}:00`).toISOString()
     addEntry.mutate({ weightKg: Number(weight), timestamp })
     setWeight('')
     setConfirmed(false)
@@ -86,7 +86,7 @@ export function WeightInput() {
                   onChange={(e) => setConfirmed(e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-4 h-4 border-2 border-on-surface-variant peer-checked:border-primary peer-checked:bg-primary transition-colors flex items-center justify-center">
+                <div className="w-4 h-4 border-2 border-on-surface-variant peer-checked:border-primary peer-checked:bg-primary peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-surface transition-colors flex items-center justify-center">
                   {confirmed && (
                     <span className="material-symbols-outlined text-on-primary text-xs">check</span>
                   )}
@@ -102,9 +102,10 @@ export function WeightInput() {
 
       <button
         onClick={handleSubmit}
-        disabled={!canSubmit}
-        className="w-full bg-primary py-4 text-on-primary font-black tracking-widest uppercase text-xs mt-8 hover:shadow-[0_0_20px_rgba(171,255,2,0.2)] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+        disabled={!canSubmit || addEntry.isPending}
+        className="w-full bg-primary py-4 text-on-primary font-black tracking-widest uppercase text-xs mt-8 hover:shadow-[0_0_20px_rgba(171,255,2,0.2)] transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
+        {addEntry.isPending && <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>}
         EXECUTE_LOG_UPDATE
       </button>
     </div>

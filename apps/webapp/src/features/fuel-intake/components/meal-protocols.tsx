@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import type { MealProtocol, Recipe } from '@HabitTree/types'
+import { ConfirmDialog } from '@/shared/confirm-dialog'
 
 interface Props {
   protocols: MealProtocol[]
@@ -24,6 +26,7 @@ export function QuickMenu({
   onManageFoods,
 }: Props) {
   const hasItems = protocols.length > 0 || recipes.length > 0
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; type: 'protocol' | 'recipe' } | null>(null)
 
   return (
     <div className="bg-surface-container p-4 space-y-3">
@@ -64,14 +67,14 @@ export function QuickMenu({
             <button
               type="button"
               onClick={() => onLogRecipe(recipe)}
-              className="w-full bg-primary py-2 text-on-primary text-[10px] font-black tracking-widest uppercase"
+              className="w-full bg-primary min-h-[44px] py-3 text-on-primary text-[10px] font-black tracking-widest uppercase cursor-pointer"
             >
               LOG_INTAKE
             </button>
             <button
               type="button"
-              onClick={() => onRemoveRecipe(recipe.id)}
-              className="opacity-0 group-hover:opacity-100 text-error text-[8px] transition-opacity"
+              onClick={() => setDeleteTarget({ id: recipe.id, type: 'recipe' })}
+              className="opacity-60 hover:opacity-100 text-error text-[8px] transition-opacity cursor-pointer min-h-[44px] px-2"
             >
               DELETE
             </button>
@@ -103,14 +106,14 @@ export function QuickMenu({
             <button
               type="button"
               onClick={() => onExecuteProtocol(protocol)}
-              className="w-full bg-primary py-2 text-on-primary text-[10px] font-black tracking-widest uppercase"
+              className="w-full bg-primary min-h-[44px] py-3 text-on-primary text-[10px] font-black tracking-widest uppercase cursor-pointer"
             >
               LOG_INTAKE
             </button>
             <button
               type="button"
-              onClick={() => onRemoveProtocol(protocol.id)}
-              className="opacity-0 group-hover:opacity-100 text-error text-[8px] transition-opacity"
+              onClick={() => setDeleteTarget({ id: protocol.id, type: 'protocol' })}
+              className="opacity-60 hover:opacity-100 text-error text-[8px] transition-opacity cursor-pointer min-h-[44px] px-2"
             >
               DELETE
             </button>
@@ -122,25 +125,38 @@ export function QuickMenu({
         <button
           type="button"
           onClick={onBuildRecipe}
-          className="w-full border border-dashed border-surface-container-high py-3 text-[10px] font-bold tracking-widest uppercase text-on-surface-variant hover:text-primary hover:border-primary transition-colors"
+          className="w-full border border-dashed border-surface-container-high py-3 text-[10px] font-bold tracking-widest uppercase text-on-surface-variant hover:text-primary hover:border-primary transition-colors cursor-pointer"
         >
           BUILD_RECIPE
         </button>
         <button
           type="button"
           onClick={onCreateProtocol}
-          className="w-full border border-dashed border-surface-container-high py-3 text-[10px] font-bold tracking-widest uppercase text-on-surface-variant hover:text-primary hover:border-primary transition-colors"
+          className="w-full border border-dashed border-surface-container-high py-3 text-[10px] font-bold tracking-widest uppercase text-on-surface-variant hover:text-primary hover:border-primary transition-colors cursor-pointer"
         >
           ADD_MANUAL_ENTRY_TEMPLATE
         </button>
         <button
           type="button"
           onClick={onManageFoods}
-          className="w-full py-2 text-[9px] font-bold tracking-widest uppercase text-on-surface-variant hover:text-primary transition-colors"
+          className="w-full py-2 text-[9px] font-bold tracking-widest uppercase text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
         >
           MANAGE_FOOD_DATABASE {'>>'}
         </button>
       </div>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (!deleteTarget) return
+          if (deleteTarget.type === 'protocol') onRemoveProtocol(deleteTarget.id)
+          else onRemoveRecipe(deleteTarget.id)
+          setDeleteTarget(null)
+        }}
+        title="CONFIRM_DELETION"
+        message="This action cannot be undone. The record will be permanently removed."
+      />
     </div>
   )
 }
