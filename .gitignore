@@ -36,3 +36,4 @@ Thumbs.db
 apps/**/package-lock.json
 packages/**/package-lock.json
 
+.claude/settings.local.json
