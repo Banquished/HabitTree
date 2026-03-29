@@ -1,6 +1,6 @@
 import uuid
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
 
 
@@ -9,10 +9,10 @@ class FoodItemBase(BaseModel):
 
     name: str
     brand: str | None = None
-    calories_per_100g: float = Field(alias="caloriesPer100g")
-    protein_per_100g: float = Field(alias="proteinPer100g")
-    carbs_per_100g: float = Field(alias="carbsPer100g")
-    fat_per_100g: float = Field(alias="fatPer100g")
+    calories_per_100g: float
+    protein_per_100g: float
+    carbs_per_100g: float
+    fat_per_100g: float
 
 
 class FoodItemCreate(FoodItemBase):
@@ -24,10 +24,10 @@ class FoodItemUpdate(BaseModel):
 
     name: str | None = None
     brand: str | None = None
-    calories_per_100g: float | None = Field(default=None, alias="caloriesPer100g")
-    protein_per_100g: float | None = Field(default=None, alias="proteinPer100g")
-    carbs_per_100g: float | None = Field(default=None, alias="carbsPer100g")
-    fat_per_100g: float | None = Field(default=None, alias="fatPer100g")
+    calories_per_100g: float | None = None
+    protein_per_100g: float | None = None
+    carbs_per_100g: float | None = None
+    fat_per_100g: float | None = None
 
 
 class FoodItemOut(FoodItemBase):

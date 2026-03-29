@@ -34,6 +34,7 @@ export interface FoodItem {
 }
 
 export interface RecipeIngredient {
+  id: string
   foodItemId: string
   amountG: number
 }

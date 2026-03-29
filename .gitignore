@@ -18,6 +18,7 @@ __pycache__/
 .venv/
 venv/
 .ruff_cache/
+apps/backend/__pycache__/main.cpython-312.pyc
 
 # OS
 .DS_Store
@@ -34,3 +35,4 @@ Thumbs.db
 # Subdirectory lockfiles (root only matters)
 apps/**/package-lock.json
 packages/**/package-lock.json
+

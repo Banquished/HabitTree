@@ -19,7 +19,7 @@ async def list_entries(db: AsyncSession = Depends(get_db)):
 
 @router.post("", response_model=FuelEntryOut, status_code=201)
 async def create_entry(data: FuelEntryCreate, db: AsyncSession = Depends(get_db)):
-    entry = FuelEntry(id=uuid.uuid4(), **data.model_dump())
+    entry = FuelEntry(id=uuid.uuid4(), **data.model_dump(by_alias=False))
     db.add(entry)
     await db.commit()
     await db.refresh(entry)

@@ -1,14 +1,16 @@
-import type { OperationTemplate } from '@HabitTree/types'
-import { useState, useRef, useEffect } from 'react'
+import type { OperationLog, OperationTemplate } from '@HabitTree/types'
+import { useEffect, useRef, useState } from 'react'
 
 interface Props {
   template: OperationTemplate
   completedCount: number
+  todayLog: OperationLog | null
+  onToggle: () => void
   onEdit: () => void
   onArchive: () => void
 }
 
-export function DirectiveCard({ template, completedCount, onEdit, onArchive }: Props) {
+export function DirectiveCard({ template, completedCount, todayLog, onToggle, onEdit, onArchive }: Props) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -80,6 +82,20 @@ export function DirectiveCard({ template, completedCount, onEdit, onArchive }: P
       <div className="h-1 bg-surface-container-high">
         <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
       </div>
+
+      <button
+        onClick={onToggle}
+        className={`w-full flex items-center justify-center gap-2 py-2.5 text-[9px] font-bold tracking-widest uppercase transition-colors cursor-pointer ${
+          todayLog?.completedAt
+            ? 'bg-primary/10 text-primary'
+            : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
+        }`}
+      >
+        <span className="material-symbols-outlined text-sm">
+          {todayLog?.completedAt ? 'check_circle' : 'add_circle'}
+        </span>
+        {todayLog?.completedAt ? 'LOGGED_TODAY' : 'LOG_SESSION'}
+      </button>
 
       {template.description && (
         <p className="text-[10px] tracking-widest uppercase text-on-surface-variant">

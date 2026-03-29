@@ -59,7 +59,7 @@ async def create_mission(data: MissionCreate, db: AsyncSession = Depends(get_db)
             f"Mission overlaps with existing mission: {m.start_date} — {m.end_date}",
         )
 
-    d = data.model_dump()
+    d = data.model_dump(by_alias=False)
     macros = d.pop("macros")
     mission = Mission(id=uuid.uuid4(), **d, **macros)
     db.add(mission)
@@ -73,7 +73,7 @@ async def update_mission(mission_id: uuid.UUID, data: MissionUpdate, db: AsyncSe
     mission = await db.get(Mission, mission_id)
     if not mission:
         raise HTTPException(404, "Mission not found")
-    for key, val in data.model_dump(exclude_unset=True).items():
+    for key, val in data.model_dump(exclude_unset=True, by_alias=False).items():
         setattr(mission, key, val)
     await db.commit()
     await db.refresh(mission)

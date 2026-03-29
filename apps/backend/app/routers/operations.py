@@ -44,7 +44,7 @@ async def list_templates(
 
 @router.post("/templates", response_model=OperationTemplateOut, status_code=201)
 async def create_template(data: OperationTemplateCreate, db: AsyncSession = Depends(get_db)):
-    template = OperationTemplate(id=uuid.uuid4(), **data.model_dump())
+    template = OperationTemplate(id=uuid.uuid4(), **data.model_dump(by_alias=False))
     db.add(template)
     await db.commit()
     await db.refresh(template)
@@ -60,7 +60,7 @@ async def update_template(
     template = await db.get(OperationTemplate, template_id)
     if not template:
         raise HTTPException(404, "Template not found")
-    for key, val in data.model_dump(exclude_unset=True).items():
+    for key, val in data.model_dump(exclude_unset=True, by_alias=False).items():
         setattr(template, key, val)
     await db.commit()
     await db.refresh(template)
@@ -90,7 +90,7 @@ async def list_logs(
 
 @router.post("/logs", response_model=OperationLogOut, status_code=201)
 async def create_log(data: OperationLogCreate, db: AsyncSession = Depends(get_db)):
-    log = OperationLog(id=uuid.uuid4(), **data.model_dump())
+    log = OperationLog(id=uuid.uuid4(), **data.model_dump(by_alias=False))
     db.add(log)
     await db.commit()
     await db.refresh(log)
@@ -102,7 +102,7 @@ async def update_log(log_id: uuid.UUID, data: OperationLogUpdate, db: AsyncSessi
     log = await db.get(OperationLog, log_id)
     if not log:
         raise HTTPException(404, "Log not found")
-    for key, val in data.model_dump(exclude_unset=True).items():
+    for key, val in data.model_dump(exclude_unset=True, by_alias=False).items():
         setattr(log, key, val)
     await db.commit()
     await db.refresh(log)

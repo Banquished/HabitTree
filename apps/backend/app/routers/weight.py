@@ -19,7 +19,7 @@ async def list_entries(db: AsyncSession = Depends(get_db)):
 
 @router.post("", response_model=WeightEntryOut, status_code=201)
 async def create_entry(data: WeightEntryCreate, db: AsyncSession = Depends(get_db)):
-    entry = WeightEntry(id=uuid.uuid4(), **data.model_dump())
+    entry = WeightEntry(id=uuid.uuid4(), **data.model_dump(by_alias=False))
     db.add(entry)
     await db.commit()
     await db.refresh(entry)
@@ -31,7 +31,7 @@ async def update_entry(entry_id: uuid.UUID, data: WeightEntryUpdate, db: AsyncSe
     entry = await db.get(WeightEntry, entry_id)
     if not entry:
         raise HTTPException(404, "Entry not found")
-    for key, val in data.model_dump(exclude_unset=True).items():
+    for key, val in data.model_dump(exclude_unset=True, by_alias=False).items():
         setattr(entry, key, val)
     await db.commit()
     await db.refresh(entry)

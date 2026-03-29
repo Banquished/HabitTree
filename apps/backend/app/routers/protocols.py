@@ -19,7 +19,7 @@ async def list_protocols(db: AsyncSession = Depends(get_db)):
 
 @router.post("", response_model=MealProtocolOut, status_code=201)
 async def create_protocol(data: MealProtocolCreate, db: AsyncSession = Depends(get_db)):
-    protocol = MealProtocol(id=uuid.uuid4(), **data.model_dump())
+    protocol = MealProtocol(id=uuid.uuid4(), **data.model_dump(by_alias=False))
     db.add(protocol)
     await db.commit()
     await db.refresh(protocol)

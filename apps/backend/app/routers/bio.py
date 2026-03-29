@@ -22,10 +22,10 @@ async def upsert_profile(data: BioProfileUpdate, db: AsyncSession = Depends(get_
     result = await db.execute(select(BioProfile))
     profile = result.scalars().first()
     if profile:
-        for key, val in data.model_dump().items():
+        for key, val in data.model_dump(by_alias=False).items():
             setattr(profile, key, val)
     else:
-        profile = BioProfile(id=uuid.uuid4(), **data.model_dump())
+        profile = BioProfile(id=uuid.uuid4(), **data.model_dump(by_alias=False))
         db.add(profile)
     await db.commit()
     await db.refresh(profile)

@@ -30,7 +30,7 @@ async def list_food_items(db: AsyncSession = Depends(get_db)):
 
 @food_router.post("", response_model=FoodItemOut, status_code=201)
 async def create_food_item(data: FoodItemCreate, db: AsyncSession = Depends(get_db)):
-    item = FoodItem(id=uuid.uuid4(), **data.model_dump())
+    item = FoodItem(id=uuid.uuid4(), **data.model_dump(by_alias=False))
     db.add(item)
     await db.commit()
     await db.refresh(item)
@@ -42,7 +42,7 @@ async def update_food_item(item_id: uuid.UUID, data: FoodItemUpdate, db: AsyncSe
     item = await db.get(FoodItem, item_id)
     if not item:
         raise HTTPException(404, "Food item not found")
-    for key, val in data.model_dump(exclude_unset=True).items():
+    for key, val in data.model_dump(exclude_unset=True, by_alias=False).items():
         setattr(item, key, val)
     await db.commit()
     await db.refresh(item)

@@ -1,14 +1,17 @@
-import type { OperationTemplate, OperationLog } from '@HabitTree/types'
+import type { OperationLog, OperationTemplate } from '@HabitTree/types'
 import { DirectiveCard } from './directive-card'
 
 interface Props {
   templates: OperationTemplate[]
   weeklyLogs: Record<string, OperationLog[]>
+  todayLogs: OperationLog[]
+  todayStr: string
+  onToggle: (templateId: string, existingLog: OperationLog | null) => void
   onEdit: (template: OperationTemplate) => void
   onArchive: (id: string) => void
 }
 
-export function WeeklyDirectives({ templates, weeklyLogs, onEdit, onArchive }: Props) {
+export function WeeklyDirectives({ templates, weeklyLogs, todayLogs, todayStr, onToggle, onEdit, onArchive }: Props) {
   function getCompletedCount(templateId: string): number {
     let count = 0
     for (const logs of Object.values(weeklyLogs)) {
@@ -19,6 +22,10 @@ export function WeeklyDirectives({ templates, weeklyLogs, onEdit, onArchive }: P
       }
     }
     return count
+  }
+
+  function getTodayLog(templateId: string): OperationLog | null {
+    return todayLogs.find((l) => l.templateId === templateId) ?? null
   }
 
   return (
@@ -48,6 +55,8 @@ export function WeeklyDirectives({ templates, weeklyLogs, onEdit, onArchive }: P
               key={template.id}
               template={template}
               completedCount={getCompletedCount(template.id)}
+              todayLog={getTodayLog(template.id)}
+              onToggle={() => onToggle(template.id, getTodayLog(template.id))}
               onEdit={() => onEdit(template)}
               onArchive={() => onArchive(template.id)}
             />

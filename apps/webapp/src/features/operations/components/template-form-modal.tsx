@@ -1,6 +1,6 @@
-import { useState } from 'react'
 import { Modal } from '@/shared/modal'
-import type { OperationTemplate, OperationFrequency, OperationPriority } from '@HabitTree/types'
+import type { OperationFrequency, OperationPriority, OperationTemplate } from '@HabitTree/types'
+import { useState } from 'react'
 
 interface Props {
   onClose: () => void
@@ -11,6 +11,28 @@ interface Props {
 
 const DAY_LABELS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'] as const
 
+const ICON_OPTIONS = [
+  'check_circle', 'fitness_center', 'directions_run', 'pool', 'self_improvement',
+  'restaurant', 'water_drop', 'local_cafe', 'egg_alt', 'lunch_dining',
+  'book', 'school', 'code', 'edit_note', 'lightbulb',
+  'bedtime', 'alarm', 'schedule', 'routine',
+  'work', 'task_alt', 'pending_actions', 'target',
+  'favorite', 'health_and_safety', 'monitor_heart', 'medication',
+  'spa', 'psychiatry', 'mindfulness',
+  'cleaning_services', 'home', 'laundry',
+  'savings', 'account_balance', 'payments',
+  'groups', 'forum', 'call', 'handshake',
+  'music_note', 'palette', 'photo_camera',
+  'hiking', 'park', 'eco', 'nature_people',
+]
+
+const CATEGORY_OPTIONS = [
+  'Health', 'Fitness', 'Nutrition', 'Hydration',
+  'Productivity', 'Learning', 'Work',
+  'Self-Care', 'Mindfulness', 'Sleep',
+  'Finance', 'Social', 'Creative', 'Outdoor',
+]
+
 export function TemplateFormModal({ onClose, onSubmit, initialData, isPending = false }: Props) {
   const [name, setName] = useState(initialData?.name ?? '')
   const [description, setDescription] = useState(initialData?.description ?? '')
@@ -20,6 +42,11 @@ export function TemplateFormModal({ onClose, onSubmit, initialData, isPending = 
   const [specificDays, setSpecificDays] = useState<number[]>(initialData?.specificDays ?? [])
   const [priority, setPriority] = useState<OperationPriority>(initialData?.priority ?? 'medium')
   const [targetCount, setTargetCount] = useState(initialData?.targetCount ?? 1)
+  const [iconFilter, setIconFilter] = useState('')
+
+  const filteredIcons = iconFilter
+    ? ICON_OPTIONS.filter((i) => i.includes(iconFilter.toLowerCase().replace(/\s/g, '_')))
+    : ICON_OPTIONS
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -75,32 +102,65 @@ export function TemplateFormModal({ onClose, onSubmit, initialData, isPending = 
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-[9px] font-bold tracking-widest uppercase text-on-surface-variant mb-2">
-              ICON
-            </label>
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={icon}
-                onChange={(e) => setIcon(e.target.value)}
-                className={inputClass}
-              />
-              <span className="material-symbols-outlined text-2xl text-primary shrink-0">{icon}</span>
-            </div>
-          </div>
-          <div>
-            <label className="block text-[9px] font-bold tracking-widest uppercase text-on-surface-variant mb-2">
-              CATEGORY
-            </label>
+        <div>
+          <label className="block text-[9px] font-bold tracking-widest uppercase text-on-surface-variant mb-2">
+            ICON
+          </label>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="material-symbols-outlined text-2xl text-primary shrink-0">{icon}</span>
             <input
               type="text"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              value={iconFilter}
+              onChange={(e) => setIconFilter(e.target.value)}
+              placeholder="Filter icons..."
               className={inputClass}
             />
           </div>
+          <div className="grid grid-cols-8 gap-1 max-h-28 overflow-y-auto">
+            {filteredIcons.map((i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setIcon(i)}
+                className={`p-2 flex items-center justify-center cursor-pointer transition-colors ${
+                  icon === i
+                    ? 'bg-primary text-on-primary'
+                    : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
+                }`}
+              >
+                <span className="material-symbols-outlined text-lg">{i}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-[9px] font-bold tracking-widest uppercase text-on-surface-variant mb-2">
+            CATEGORY
+          </label>
+          <div className="flex flex-wrap gap-1 mb-2">
+            {CATEGORY_OPTIONS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setCategory(c)}
+                className={`px-3 py-2 text-[9px] font-bold tracking-widest cursor-pointer transition-colors ${
+                  category === c
+                    ? 'bg-primary text-on-primary'
+                    : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+          <input
+            type="text"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            placeholder="Or type custom..."
+            className={inputClass}
+          />
         </div>
 
         <div>

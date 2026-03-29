@@ -1,12 +1,12 @@
-import { useState, useMemo } from 'react'
-import { useOperationTemplates, useCreateTemplate, useUpdateTemplate, useArchiveTemplate } from './api/use-operation-templates'
-import { useOperationLogs, useToggleLog } from './api/use-operation-logs'
-import { QuickAddInput } from './components/quick-add-input'
-import { DailyProtocol } from './components/daily-protocol'
-import { WeeklyDirectives } from './components/weekly-directives'
-import { TemplateFormModal } from './components/template-form-modal'
 import { formatLocalDate, todayLocal } from '@/shared/date-utils'
 import type { OperationTemplate } from '@HabitTree/types'
+import { useMemo, useState } from 'react'
+import { useOperationLogs, useToggleLog } from './api/use-operation-logs'
+import { useArchiveTemplate, useCreateTemplate, useOperationTemplates, useUpdateTemplate } from './api/use-operation-templates'
+import { DailyProtocol } from './components/daily-protocol'
+import { QuickAddInput } from './components/quick-add-input'
+import { TemplateFormModal } from './components/template-form-modal'
+import { WeeklyDirectives } from './components/weekly-directives'
 
 function getWeekDates(): string[] {
   const today = new Date()
@@ -138,6 +138,9 @@ export function Component() {
           <WeeklyDirectives
             templates={weeklyTemplates}
             weeklyLogs={weeklyLogs}
+            todayLogs={todayLogs}
+            todayStr={todayStr}
+            onToggle={handleToggle}
             onEdit={handleEdit}
             onArchive={handleArchive}
           />
