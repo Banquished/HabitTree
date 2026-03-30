@@ -7,7 +7,9 @@ from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
+from app.dependencies import get_current_user
 from app.models.operation import OperationLog, OperationTemplate
+from app.models.user import User
 from app.schemas.operation import (
     DailySummaryItemOut,
     DailySummaryOut,
@@ -31,8 +33,9 @@ async def list_templates(
     frequency: str | None = None,
     is_active: bool | None = None,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
-    stmt = select(OperationTemplate)
+    stmt = select(OperationTemplate).where(OperationTemplate.user_id == user.id)
     if frequency is not None:
         stmt = stmt.where(OperationTemplate.frequency == frequency)
     if is_active is not None:
@@ -43,8 +46,12 @@ async def list_templates(
 
 
 @router.post("/templates", response_model=OperationTemplateOut, status_code=201)
-async def create_template(data: OperationTemplateCreate, db: AsyncSession = Depends(get_db)):
-    template = OperationTemplate(id=uuid.uuid4(), **data.model_dump(by_alias=False))
+async def create_template(
+    data: OperationTemplateCreate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    template = OperationTemplate(id=uuid.uuid4(), user_id=user.id, **data.model_dump(by_alias=False))
     db.add(template)
     await db.commit()
     await db.refresh(template)
@@ -56,8 +63,12 @@ async def update_template(
     template_id: uuid.UUID,
     data: OperationTemplateUpdate,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
-    template = await db.get(OperationTemplate, template_id)
+    result = await db.execute(
+        select(OperationTemplate).where(OperationTemplate.id == template_id, OperationTemplate.user_id == user.id)
+    )
+    template = result.scalars().first()
     if not template:
         raise HTTPException(404, "Template not found")
     for key, val in data.model_dump(exclude_unset=True, by_alias=False).items():
@@ -68,8 +79,15 @@ async def update_template(
 
 
 @router.delete("/templates/{template_id}", status_code=204)
-async def delete_template(template_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
-    template = await db.get(OperationTemplate, template_id)
+async def delete_template(
+    template_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    result = await db.execute(
+        select(OperationTemplate).where(OperationTemplate.id == template_id, OperationTemplate.user_id == user.id)
+    )
+    template = result.scalars().first()
     if not template:
         raise HTTPException(404, "Template not found")
     template.is_active = False
@@ -83,14 +101,19 @@ async def delete_template(template_id: uuid.UUID, db: AsyncSession = Depends(get
 async def list_logs(
     date: str = Query(..., description="Date in YYYY-MM-DD format"),
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
-    result = await db.execute(select(OperationLog).where(OperationLog.date == date))
+    result = await db.execute(select(OperationLog).where(OperationLog.date == date, OperationLog.user_id == user.id))
     return result.scalars().all()
 
 
 @router.post("/logs", response_model=OperationLogOut, status_code=201)
-async def create_log(data: OperationLogCreate, db: AsyncSession = Depends(get_db)):
-    log = OperationLog(id=uuid.uuid4(), **data.model_dump(by_alias=False))
+async def create_log(
+    data: OperationLogCreate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    log = OperationLog(id=uuid.uuid4(), user_id=user.id, **data.model_dump(by_alias=False))
     db.add(log)
     await db.commit()
     await db.refresh(log)
@@ -98,8 +121,14 @@ async def create_log(data: OperationLogCreate, db: AsyncSession = Depends(get_db
 
 
 @router.put("/logs/{log_id}", response_model=OperationLogOut)
-async def update_log(log_id: uuid.UUID, data: OperationLogUpdate, db: AsyncSession = Depends(get_db)):
-    log = await db.get(OperationLog, log_id)
+async def update_log(
+    log_id: uuid.UUID,
+    data: OperationLogUpdate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    result = await db.execute(select(OperationLog).where(OperationLog.id == log_id, OperationLog.user_id == user.id))
+    log = result.scalars().first()
     if not log:
         raise HTTPException(404, "Log not found")
     for key, val in data.model_dump(exclude_unset=True, by_alias=False).items():
@@ -110,8 +139,9 @@ async def update_log(log_id: uuid.UUID, data: OperationLogUpdate, db: AsyncSessi
 
 
 @router.delete("/logs/{log_id}", status_code=204)
-async def delete_log(log_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
-    log = await db.get(OperationLog, log_id)
+async def delete_log(log_id: uuid.UUID, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+    result = await db.execute(select(OperationLog).where(OperationLog.id == log_id, OperationLog.user_id == user.id))
+    log = result.scalars().first()
     if not log:
         raise HTTPException(404, "Log not found")
     await db.delete(log)
@@ -134,16 +164,23 @@ async def get_heatmap(
     start: str = Query(..., description="Start date YYYY-MM-DD"),
     end: str = Query(..., description="End date YYYY-MM-DD"),
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     start_date = date_type.fromisoformat(start)
     end_date = date_type.fromisoformat(end)
 
-    # Get all active templates
-    result = await db.execute(select(OperationTemplate).where(OperationTemplate.is_active.is_(True)))
+    # Get all active templates for this user
+    result = await db.execute(
+        select(OperationTemplate).where(OperationTemplate.is_active.is_(True), OperationTemplate.user_id == user.id)
+    )
     templates = result.scalars().all()
 
-    # Get all logs in the date range
-    result = await db.execute(select(OperationLog).where(and_(OperationLog.date >= start, OperationLog.date <= end)))
+    # Get all logs in the date range for this user
+    result = await db.execute(
+        select(OperationLog).where(
+            and_(OperationLog.date >= start, OperationLog.date <= end, OperationLog.user_id == user.id)
+        )
+    )
     logs = result.scalars().all()
 
     # Index logs by date
@@ -174,13 +211,14 @@ async def get_heatmap(
 async def get_daily_summary(
     date: str = Query(..., description="Date in YYYY-MM-DD format"),
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     d = date_type.fromisoformat(date)
 
-    # Get all active templates
+    # Get all active templates for this user
     result = await db.execute(
         select(OperationTemplate)
-        .where(OperationTemplate.is_active.is_(True))
+        .where(OperationTemplate.is_active.is_(True), OperationTemplate.user_id == user.id)
         .order_by(OperationTemplate.sort_order, OperationTemplate.created_at)
     )
     templates = result.scalars().all()
@@ -188,8 +226,8 @@ async def get_daily_summary(
     # Filter to applicable templates
     applicable = [t for t in templates if _is_applicable(t, d)]
 
-    # Get logs for this date
-    result = await db.execute(select(OperationLog).where(OperationLog.date == date))
+    # Get logs for this date for this user
+    result = await db.execute(select(OperationLog).where(OperationLog.date == date, OperationLog.user_id == user.id))
     logs_by_template: dict[uuid.UUID, OperationLog] = {log.template_id: log for log in result.scalars().all()}
 
     items: list[DailySummaryItemOut] = []

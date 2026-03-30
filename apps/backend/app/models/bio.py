@@ -1,4 +1,6 @@
-from sqlalchemy import Float, Integer, String
+import uuid
+
+from sqlalchemy import Float, ForeignKey, Integer, String, Uuid
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -8,6 +10,7 @@ from app.models.base import Base
 class BioProfile(Base):
     __tablename__ = "bio_profiles"
 
+    user_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("users.id"), nullable=True, index=True)
     age: Mapped[int] = mapped_column(Integer)
     sex: Mapped[str] = mapped_column(String)
     weight_kg: Mapped[float] = mapped_column(Float)

@@ -28,9 +28,22 @@ export function Component() {
 
   const [showForm, setShowForm] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState<OperationTemplate | null>(null)
+  const [selectedDate, setSelectedDate] = useState(() => new Date())
+
+  const selectedDateStr = formatLocalDate(selectedDate)
+  const isToday = selectedDateStr === todayStr
+
+  function shiftDate(days: number) {
+    setSelectedDate((prev) => {
+      const next = new Date(prev)
+      next.setDate(prev.getDate() + days)
+      if (formatLocalDate(next) > todayStr) return prev
+      return next
+    })
+  }
 
   const { data: templates = [] } = useOperationTemplates()
-  const { data: todayLogs = [] } = useOperationLogs(todayStr)
+  const { data: selectedDayLogs = [] } = useOperationLogs(selectedDateStr)
 
   const weekLogQueries = [
     useOperationLogs(weekDates[0]),
@@ -61,6 +74,11 @@ export function Component() {
   )
   const weeklyTemplates = templates.filter((t) => t.frequency === 'weekly')
 
+  const existingCategories = useMemo(
+    () => [...new Set(templates.map((t) => t.category).filter((c): c is string => Boolean(c)))],
+    [templates]
+  )
+
   function handleQuickAdd(name: string) {
     createTemplate.mutate({
       name,
@@ -74,7 +92,7 @@ export function Component() {
   }
 
   function handleToggle(templateId: string, existingLog: import('@HabitTree/types').OperationLog | null) {
-    toggleLog.mutate({ templateId, date: todayStr, existingLog })
+    toggleLog.mutate({ templateId, date: selectedDateStr, existingLog })
   }
 
   function handleEdit(template: OperationTemplate) {
@@ -124,11 +142,43 @@ export function Component() {
 
       <QuickAddInput onAdd={handleQuickAdd} isPending={createTemplate.isPending} />
 
+      <div className="flex items-center gap-3 bg-surface-container ghost-border px-4 py-2">
+        <button
+          type="button"
+          onClick={() => shiftDate(-1)}
+          className="min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer text-on-surface-variant hover:text-on-surface transition-colors"
+          aria-label="Previous day"
+        >
+          <span className="material-symbols-outlined text-lg">chevron_left</span>
+        </button>
+        <span className="font-mono text-sm text-on-surface tracking-widest uppercase">
+          {selectedDateStr} ({['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][selectedDate.getDay()]})
+        </span>
+        {!isToday && (
+          <button
+            type="button"
+            onClick={() => setSelectedDate(new Date())}
+            className="min-h-[44px] px-3 text-[9px] font-bold tracking-widest uppercase bg-surface-container-high text-primary cursor-pointer hover:text-on-surface transition-colors"
+          >
+            TODAY
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={() => shiftDate(1)}
+          disabled={isToday}
+          className="min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer text-on-surface-variant hover:text-on-surface transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          aria-label="Next day"
+        >
+          <span className="material-symbols-outlined text-lg">chevron_right</span>
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         <div className="lg:col-span-5">
           <DailyProtocol
             templates={dailyTemplates}
-            logs={todayLogs}
+            logs={selectedDayLogs}
             onToggle={handleToggle}
             onEdit={handleEdit}
             onArchive={handleArchive}
@@ -138,8 +188,7 @@ export function Component() {
           <WeeklyDirectives
             templates={weeklyTemplates}
             weeklyLogs={weeklyLogs}
-            todayLogs={todayLogs}
-            todayStr={todayStr}
+            todayLogs={selectedDayLogs}
             onToggle={handleToggle}
             onEdit={handleEdit}
             onArchive={handleArchive}
@@ -153,6 +202,7 @@ export function Component() {
           onSubmit={handleFormSubmit}
           initialData={editingTemplate ?? undefined}
           isPending={editingTemplate ? updateTemplate.isPending : createTemplate.isPending}
+          existingCategories={existingCategories}
         />
       )}
     </div>

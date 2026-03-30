@@ -8,7 +8,7 @@ interface Props {
   onClose: () => void
   onSubmit: (data: {
     name: string
-    ingredients: RecipeIngredient[]
+    ingredients: Omit<RecipeIngredient, 'id'>[]
     totalCalories: number
     totalProteinG: number
     totalCarbsG: number

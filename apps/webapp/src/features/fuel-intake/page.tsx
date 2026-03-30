@@ -1,3 +1,4 @@
+import type { RecipeIngredient } from '@HabitTree/types'
 import { useState } from 'react'
 import { Modal } from '@/shared/modal'
 import { useAddFuelEntry, useRemoveFuelEntry, useMealProtocols, useAddMealProtocol, useRemoveMealProtocol, useExecuteProtocol } from './api/use-fuel-entries'
@@ -95,7 +96,7 @@ export function Component() {
     })
   }
 
-  function handleRecipeSubmit(data: { name: string; ingredients: { foodItemId: string; amountG: number }[]; totalCalories: number; totalProteinG: number; totalCarbsG: number; totalFatG: number; totalWeightG: number }) {
+  function handleRecipeSubmit(data: { name: string; ingredients: Omit<RecipeIngredient, 'id'>[]; totalCalories: number; totalProteinG: number; totalCarbsG: number; totalFatG: number; totalWeightG: number }) {
     addRecipe.mutate(data)
     setShowRecipeBuilder(false)
   }

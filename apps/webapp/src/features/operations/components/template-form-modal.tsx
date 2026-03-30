@@ -1,12 +1,13 @@
 import { Modal } from '@/shared/modal'
 import type { OperationFrequency, OperationPriority, OperationTemplate } from '@HabitTree/types'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 interface Props {
   onClose: () => void
   onSubmit: (data: Omit<OperationTemplate, 'id' | 'createdAt'>) => void
   initialData?: OperationTemplate
   isPending?: boolean
+  existingCategories?: string[]
 }
 
 const DAY_LABELS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'] as const
@@ -26,14 +27,7 @@ const ICON_OPTIONS = [
   'hiking', 'park', 'eco', 'nature_people',
 ]
 
-const CATEGORY_OPTIONS = [
-  'Health', 'Fitness', 'Nutrition', 'Hydration',
-  'Productivity', 'Learning', 'Work',
-  'Self-Care', 'Mindfulness', 'Sleep',
-  'Finance', 'Social', 'Creative', 'Outdoor',
-]
-
-export function TemplateFormModal({ onClose, onSubmit, initialData, isPending = false }: Props) {
+export function TemplateFormModal({ onClose, onSubmit, initialData, isPending = false, existingCategories = [] }: Props) {
   const [name, setName] = useState(initialData?.name ?? '')
   const [description, setDescription] = useState(initialData?.description ?? '')
   const [icon, setIcon] = useState(initialData?.icon ?? 'check_circle')
@@ -43,6 +37,19 @@ export function TemplateFormModal({ onClose, onSubmit, initialData, isPending = 
   const [priority, setPriority] = useState<OperationPriority>(initialData?.priority ?? 'medium')
   const [targetCount, setTargetCount] = useState(initialData?.targetCount ?? 1)
   const [iconFilter, setIconFilter] = useState('')
+  const [iconPickerOpen, setIconPickerOpen] = useState(false)
+  const iconPickerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!iconPickerOpen) return
+    function handleClick(e: MouseEvent) {
+      if (iconPickerRef.current && !iconPickerRef.current.contains(e.target as Node)) {
+        setIconPickerOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [iconPickerOpen])
 
   const filteredIcons = iconFilter
     ? ICON_OPTIONS.filter((i) => i.includes(iconFilter.toLowerCase().replace(/\s/g, '_')))
@@ -102,65 +109,79 @@ export function TemplateFormModal({ onClose, onSubmit, initialData, isPending = 
           />
         </div>
 
-        <div>
+        <div ref={iconPickerRef} className="relative">
           <label className="block text-[9px] font-bold tracking-widest uppercase text-on-surface-variant mb-2">
             ICON
           </label>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="material-symbols-outlined text-2xl text-primary shrink-0">{icon}</span>
-            <input
-              type="text"
-              value={iconFilter}
-              onChange={(e) => setIconFilter(e.target.value)}
-              placeholder="Filter icons..."
-              className={inputClass}
-            />
-          </div>
-          <div className="grid grid-cols-8 gap-1 max-h-28 overflow-y-auto">
-            {filteredIcons.map((i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => setIcon(i)}
-                className={`p-2 flex items-center justify-center cursor-pointer transition-colors ${
-                  icon === i
-                    ? 'bg-primary text-on-primary'
-                    : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
-                }`}
-              >
-                <span className="material-symbols-outlined text-lg">{i}</span>
-              </button>
-            ))}
-          </div>
+          <button
+            type="button"
+            onClick={() => setIconPickerOpen((v) => !v)}
+            className="flex items-center gap-3 bg-surface-container-high px-4 min-h-[44px] cursor-pointer w-full"
+          >
+            <span className="material-symbols-outlined text-2xl text-primary">{icon}</span>
+            <span className="font-mono text-sm text-on-surface-variant">{icon.replace(/_/g, ' ')}</span>
+            <span className="material-symbols-outlined text-sm text-on-surface-variant ml-auto">
+              {iconPickerOpen ? 'expand_less' : 'expand_more'}
+            </span>
+          </button>
+          {iconPickerOpen && (
+            <div className="absolute z-10 left-0 right-0 mt-1 bg-surface-container p-3 ghost-border space-y-2">
+              <input
+                type="text"
+                value={iconFilter}
+                onChange={(e) => setIconFilter(e.target.value)}
+                placeholder="Filter icons..."
+                className={inputClass}
+              />
+              <div className="grid grid-cols-8 gap-1 max-h-36 overflow-y-auto">
+                {filteredIcons.map((i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => { setIcon(i); setIconPickerOpen(false); setIconFilter('') }}
+                    className={`p-2 flex items-center justify-center cursor-pointer transition-colors ${
+                      icon === i
+                        ? 'bg-primary text-on-primary'
+                        : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-lg">{i}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div>
           <label className="block text-[9px] font-bold tracking-widest uppercase text-on-surface-variant mb-2">
             CATEGORY
           </label>
-          <div className="flex flex-wrap gap-1 mb-2">
-            {CATEGORY_OPTIONS.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => setCategory(c)}
-                className={`px-3 py-2 text-[9px] font-bold tracking-widest cursor-pointer transition-colors ${
-                  category === c
-                    ? 'bg-primary text-on-primary'
-                    : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
           <input
             type="text"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            placeholder="Or type custom..."
+            placeholder="Type a category..."
             className={inputClass}
           />
+          {existingCategories.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {existingCategories.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setCategory(c)}
+                  className={`px-3 min-h-[44px] text-[9px] font-bold tracking-widest cursor-pointer transition-colors ${
+                    category === c
+                      ? 'bg-primary text-on-primary'
+                      : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div>
@@ -218,7 +239,7 @@ export function TemplateFormModal({ onClose, onSubmit, initialData, isPending = 
               type="number"
               min={1}
               value={targetCount}
-              onChange={(e) => setTargetCount(Number(e.target.value))}
+              onChange={(e) => setTargetCount(Math.max(1, parseInt(e.target.value, 10) || 1))}
               className={inputClass}
             />
           </div>

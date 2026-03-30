@@ -9,6 +9,7 @@ from app.models.base import Base
 class FoodItem(Base):
     __tablename__ = "food_items"
 
+    user_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("users.id"), nullable=True, index=True)
     name: Mapped[str] = mapped_column(String)
     brand: Mapped[str | None] = mapped_column(String, nullable=True)
     calories_per_100g: Mapped[float] = mapped_column(Float)
@@ -20,6 +21,7 @@ class FoodItem(Base):
 class Recipe(Base):
     __tablename__ = "recipes"
 
+    user_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("users.id"), nullable=True, index=True)
     name: Mapped[str] = mapped_column(String)
     total_calories: Mapped[int] = mapped_column(Integer)
     total_protein_g: Mapped[float] = mapped_column(Float)

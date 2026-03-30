@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useFoodStore } from './food-store'
 import { useApiClient, isNetworkError } from '@/shared/api-context'
-import type { FoodItem, Recipe } from '@HabitTree/types'
+import type { FoodItem, Recipe, RecipeIngredient } from '@HabitTree/types'
 
 export function useFoodItems() {
   const api = useApiClient()
@@ -97,8 +97,8 @@ export function useAddRecipe() {
   const api = useApiClient()
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (data: Omit<Recipe, 'id'>) => {
-      const recipe: Recipe = { id: crypto.randomUUID(), ...data }
+    mutationFn: async (data: Omit<Recipe, 'id' | 'ingredients'> & { ingredients: Omit<RecipeIngredient, 'id'>[] }) => {
+      const recipe: Recipe = { id: crypto.randomUUID(), ...data, ingredients: data.ingredients.map((i) => ({ ...i, id: crypto.randomUUID() })) }
       useFoodStore.getState().addRecipe(recipe)
       try {
         return await api.createRecipe(data)

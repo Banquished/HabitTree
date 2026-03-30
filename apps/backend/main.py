@@ -2,7 +2,7 @@ from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import bio, food, fuel, missions, operations, protocols, weight
+from app.routers import bio, food, fuel, missions, operations, protocols, webhooks, weight
 
 app = FastAPI(title="HabitTree API", version="1.0.0")
 
@@ -23,6 +23,7 @@ v1.include_router(bio.router)
 v1.include_router(food.food_router)
 v1.include_router(food.recipe_router)
 v1.include_router(operations.router)
+v1.include_router(webhooks.router)
 app.include_router(v1)
 
 

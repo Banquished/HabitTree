@@ -1,42 +1,47 @@
 import type {
-  WeightEntry,
-  FuelEntry,
-  MealProtocol,
-  Mission,
-  BioProfile,
-  FoodItem,
-  Recipe,
-  RecipeIngredient,
-  OperationTemplate,
-  OperationLog,
-  HeatmapDay,
-  DailySummary,
+    BioProfile,
+    DailySummary,
+    FoodItem,
+    FuelEntry,
+    HeatmapDay,
+    MealProtocol,
+    Mission,
+    OperationLog,
+    OperationTemplate,
+    Recipe,
+    RecipeIngredient,
+    WeightEntry,
 } from '@HabitTree/types'
 
-async function request<T>(baseUrl: string, path: string, init?: RequestInit): Promise<T> {
-  const { headers: extraHeaders, ...restInit } = init ?? {}
-  const headers: Record<string, string> = { ...(extraHeaders as Record<string, string>) }
-  if (restInit.body) headers['Content-Type'] = 'application/json'
+export function createApiClient(baseUrl: string, getToken?: () => Promise<string | null>) {
+  async function request<T>(path: string, init?: RequestInit): Promise<T> {
+    const { headers: extraHeaders, ...restInit } = init ?? {}
+    const headers: Record<string, string> = { ...(extraHeaders as Record<string, string>) }
+    if (restInit.body) headers['Content-Type'] = 'application/json'
 
-  const res = await fetch(`${baseUrl}${path}`, {
-    ...restInit,
-    headers,
-  })
-  if (!res.ok) {
-    throw new Error(`API ${res.status}: ${res.statusText}`)
+    if (getToken) {
+      const token = await getToken()
+      if (token) headers['Authorization'] = `Bearer ${token}`
+    }
+
+    const res = await fetch(`${baseUrl}${path}`, {
+      ...restInit,
+      headers,
+    })
+    if (!res.ok) {
+      throw new Error(`API ${res.status}: ${res.statusText}`)
+    }
+    if (res.status === 204) return undefined as T
+    return res.json() as Promise<T>
   }
-  if (res.status === 204) return undefined as T
-  return res.json()
-}
 
-export function createApiClient(baseUrl: string) {
-  const get = <T>(path: string) => request<T>(baseUrl, path)
+  const get = <T>(path: string) => request<T>(path)
   const post = <T>(path: string, body: unknown) =>
-    request<T>(baseUrl, path, { method: 'POST', body: JSON.stringify(body) })
+    request<T>(path, { method: 'POST', body: JSON.stringify(body) })
   const put = <T>(path: string, body: unknown) =>
-    request<T>(baseUrl, path, { method: 'PUT', body: JSON.stringify(body) })
+    request<T>(path, { method: 'PUT', body: JSON.stringify(body) })
   const del = (path: string) =>
-    request<void>(baseUrl, path, { method: 'DELETE' })
+    request<void>(path, { method: 'DELETE' })
 
   return {
     baseUrl,

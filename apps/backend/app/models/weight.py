@@ -1,6 +1,7 @@
+import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, String
+from sqlalchemy import DateTime, Float, ForeignKey, String, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
@@ -9,6 +10,7 @@ from app.models.base import Base
 class WeightEntry(Base):
     __tablename__ = "weight_entries"
 
+    user_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("users.id"), nullable=True, index=True)
     timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     weight_kg: Mapped[float] = mapped_column(Float)
     note: Mapped[str | None] = mapped_column(String, nullable=True)

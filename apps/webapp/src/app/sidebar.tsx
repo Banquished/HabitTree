@@ -1,3 +1,4 @@
+import { useClerk, useUser } from '@clerk/react'
 import { NavLink } from 'react-router'
 import { useLayoutStore } from './layout-store'
 
@@ -11,6 +12,8 @@ const navItems = [
 
 export function Sidebar() {
   const collapsed = useLayoutStore((s) => s.sidebarCollapsed)
+  const { user } = useUser()
+  const { signOut } = useClerk()
 
   return (
     <aside
@@ -24,8 +27,8 @@ export function Sidebar() {
           <span className="material-symbols-outlined text-primary text-lg">person</span>
         </div>
         <div className="overflow-hidden whitespace-nowrap">
-          <div className="text-xs font-black italic tracking-tight text-primary">OPERATOR_01</div>
-          <div className="text-[9px] font-bold uppercase tracking-widest text-on-surface-variant">STATUS: OPTIMIZED</div>
+          <div className="text-xs font-black italic tracking-tight text-primary">{user?.firstName || user?.emailAddresses[0]?.emailAddress?.split('@')[0]?.toUpperCase() || 'OPERATOR'}</div>
+          <div className="text-[9px] font-bold uppercase tracking-widest text-on-surface-variant">STATUS: ACTIVE</div>
         </div>
       </div>
 
@@ -60,7 +63,7 @@ export function Sidebar() {
             INITIALIZE_PROCEDURE
           </span>
         </button>
-        <button aria-label="Logout" className="flex items-center gap-3 px-3 py-2 min-h-[44px] text-on-surface-variant hover:text-primary transition-colors overflow-hidden cursor-pointer">
+        <button onClick={() => signOut()} aria-label="Logout" className="flex items-center gap-3 px-3 py-2 min-h-[44px] text-on-surface-variant hover:text-primary transition-colors overflow-hidden cursor-pointer">
           <span className="material-symbols-outlined text-xl flex-shrink-0">logout</span>
           <span className="text-[10px] font-bold uppercase tracking-widest whitespace-nowrap overflow-hidden">LOGOUT</span>
         </button>

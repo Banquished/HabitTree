@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
 import {
   ResponsiveContainer,
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -67,7 +67,7 @@ export function WeightChart({ entries }: Props) {
         </div>
       </div>
 
-      <div className="h-64 w-full relative [&_.recharts-line-curve]:drop-shadow-[0_0_6px_rgba(171,255,2,0.5)]">
+      <div className="h-64 w-full relative [&_.recharts-area-curve]:drop-shadow-[0_0_6px_rgba(171,255,2,0.5)]">
         {chartData.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
@@ -82,7 +82,13 @@ export function WeightChart({ entries }: Props) {
           </div>
         )}
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData}>
+          <AreaChart data={chartData}>
+            <defs>
+              <linearGradient id="weightFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#ABFF02" stopOpacity={0.3} />
+                <stop offset="100%" stopColor="#ABFF02" stopOpacity={0.02} />
+              </linearGradient>
+            </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
             <XAxis
               dataKey="date"
@@ -100,15 +106,16 @@ export function WeightChart({ entries }: Props) {
               tickFormatter={(v: number) => `${v}kg`}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Line
+            <Area
               type="monotone"
               dataKey="weight"
               stroke="#ABFF02"
               strokeWidth={2}
+              fill="url(#weightFill)"
               dot={{ r: 3, fill: '#0e0e0e', stroke: '#ABFF02', strokeWidth: 2 }}
               activeDot={{ r: 5, fill: '#ABFF02' }}
             />
-          </LineChart>
+          </AreaChart>
         </ResponsiveContainer>
       </div>
 

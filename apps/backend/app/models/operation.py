@@ -21,6 +21,7 @@ from app.models.base import Base
 class OperationTemplate(Base):
     __tablename__ = "operation_templates"
 
+    user_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("users.id"), nullable=True, index=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
     icon: Mapped[str] = mapped_column(String, default="task_alt")
@@ -41,6 +42,7 @@ class OperationLog(Base):
         Index("ix_operation_logs_date", "date"),
     )
 
+    user_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("users.id"), nullable=True, index=True)
     template_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("operation_templates.id"), nullable=False)
     date: Mapped[str] = mapped_column(String, nullable=False)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

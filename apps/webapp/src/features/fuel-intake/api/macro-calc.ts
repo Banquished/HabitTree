@@ -15,7 +15,7 @@ export function calculateFoodMacros(foodItem: FoodItem, amountG: number) {
 }
 
 export function calculateRecipeMacros(
-  ingredients: RecipeIngredient[],
+  ingredients: Pick<RecipeIngredient, 'foodItemId' | 'amountG'>[],
   foodItems: FoodItem[],
 ) {
   const itemMap = new Map(foodItems.map((f) => [f.id, f]))

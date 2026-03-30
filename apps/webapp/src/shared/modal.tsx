@@ -54,7 +54,6 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
       role="presentation"
     >
       <div
